@@ -44,9 +44,8 @@ else:
     wraps = functools.wraps
 
 # memoize is made obsolete as of Python 3.2 by functools.lru_cache.
-
 if sys.version_info.major >= (3, 2):
-    memoize = functools.partial(functools.lru_cache, maxsize=None)
+    memoize = functools.lru_cache(maxsize=None)
 
 else:
     def memoize(func):
