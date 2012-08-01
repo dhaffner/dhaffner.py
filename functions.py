@@ -93,8 +93,8 @@ def cached(seconds=0, cache=None):
             return v
 
         @wraps(func)
-        def wrapped(*args, **kw):
-            k = key(func, args, kw)
+        def wrapped(*args, **kwargs):
+            k = key(func, args, kwargs)
             if k in cache:
                 t, v = cache.get(k)
                 if (time.time() - t) < seconds:
@@ -117,15 +117,15 @@ def compose(*funcs):
 
     >>> compose(f, g)(x) = f(g(x))
     """
-    return reduce(lambda g, h: lambda *args, **kw: g(h(*args, **kw)), funcs)
+    return reduce(lambda g, h: lambda *args, **kwargs: g(h(*args, **kwargs)), funcs)
 
 
 def flip(func):
     """Decorate the given function to reverse the order of its arguments."""
 
     @wraps(func)
-    def flipped(*args, **kw):
-        return func(*reversed(args), **kw)
+    def flipped(*args, **kwargs):
+        return func(*reversed(args), **kwargs)
 
     return flipped
 
@@ -274,8 +274,8 @@ def vectorize(func):
     """Decorate a function to always return a sequence rather than a scalar."""
 
     @wraps(func)
-    def wrapped(*args, **kw):
-        value = func(*args, **kw)
+    def wrapped(*args, **kwargs):
+        value = func(*args, **kwargs)
         if sequences.issequence(value):
             return value
         return [value]
@@ -287,7 +287,6 @@ def vectorize(func):
 def curry(func, n=None):
     """Curry a function for up to n arguments, where by default n is the number
     of fixed, unnamed arguments in func's defintion.
-    TODO: keyword support in terms of # of arguments
     """
 
     def nargs(func):
@@ -299,10 +298,10 @@ def curry(func, n=None):
         n = nargs(func)
 
     @wraps(func)
-    def curried(*args, **kw):
+    def curried(*args, **kwargs):
         if len(args) >= n:
-            return func(*args, **kw)
-        return curry(functools.partial(func, *args, **kw), n - len(args))
+            return func(*args, **kwargs)
+        return curry(functools.partial(func, *args, **kwargs), n - len(args))
 
     return curried
 
@@ -353,4 +352,4 @@ def identity(x):
 
 def constant(x):
     """Close x under an anonymous function."""
-    return lambda *args, **kw: x
+    return lambda *args, **kwargs: x
