@@ -17,7 +17,7 @@ import time
 
 import sequences
 
-if sys.version_info.major < (3, 3):
+if sys.hexversion < 0x030300b1:
     def update_wrapper(wrapper,
                        wrapped,
                        assigned=functools.WRAPPER_ASSIGNMENTS,
@@ -44,7 +44,7 @@ else:
     wraps = functools.wraps
 
 # memoize is made obsolete as of Python 3.2 by functools.lru_cache.
-if sys.version_info.major >= (3, 2):
+if sys.hexversion >= 0x03020000:
     memoize = functools.lru_cache(maxsize=None)
 
 else:
