@@ -2,9 +2,7 @@
 
 # Miscellaneous functions.
 
-__all__ = ['files', 'find', 'fnmatch', 'htmlentitydefs', 'maybe', 'noop',
-           'splitlines', 'throws', 'unescape']
-
+__all__ = ('files', 'find', 'maybe', 'noop', 'splitlines', 'throws', 'unescape')
 
 import fnmatch
 import functools
@@ -15,20 +13,10 @@ import random
 import re
 
 
-def throws(thunk, exception):
-    if isinstance(exception, Exception):
-        exception = (exception, )
-    try:
-        thunk()
-    except exception:
-        return True
-    else:
-        return False
-
-
-def noop(*args, **kwargs):
-    """Do nothing."""
-    pass
+def files(directory, pattern):
+    """Return all filenames from directory which match given pattern."""
+    join = functools.partial(os.path.join, directory)
+    return itertools.imap(join, fnmatch.filter(os.listdir(directory), pattern))
 
 
 def find(pattern, string, default=None):
@@ -53,10 +41,26 @@ def maybe(p, func, x):
     return x
 
 
-def files(directory, pattern):
-    """Return all filenames from directory which match given pattern."""
-    join = functools.partial(os.path.join, directory)
-    return itertools.imap(join, fnmatch.filter(os.listdir(directory), pattern))
+def noop(*args, **kwargs):
+    """Do nothing."""
+    pass
+
+
+def splitlines(text, exp=re.compile(r'^.*$', re.MULTILINE)):
+    """Split lines in the given string lazily."""
+    for match in exp.finditer(text):
+        yield match.group(0)
+
+
+def throws(thunk, exception):
+    if isinstance(exception, Exception):
+        exception = (exception, )
+    try:
+        thunk()
+    except exception:
+        return True
+    else:
+        return False
 
 
 def unescape(text):
@@ -79,12 +83,6 @@ def unescape(text):
                 text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
-        return text # leave as-is
+        return text  # leave as-is
 
     return re.sub("&#?\w+;", fixup, text)
-
-
-def splitlines(text, exp=re.compile(r'^.*$', re.MULTILINE)):
-    """Split lines in the given string lazily."""
-    for match in exp.finditer(text):
-        yield match.group(0)
