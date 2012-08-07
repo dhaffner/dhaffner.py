@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-# A bunch of high-order functions I've found useful.
+# Some high-order functions and decorators.
 
-__all__ = ['atomize', 'cached', 'caller', 'composable', 'compose', 'constant',
+__all__ = ('atomize', 'cached', 'caller', 'composable', 'compose', 'constant',
            'context', 'curry', 'flip', 'identity', 'iterate', 'memoize',
-           'merge', 'pipe', 'scan', 'uncurry', 'vectorize', 'wraps']
+           'merge', 'pipe', 'scan', 'uncurry', 'vectorize', 'wraps')
 
 import contextlib
 import functools
@@ -43,31 +43,22 @@ if sys.version_info.major < (3, 3):
 else:
     wraps = functools.wraps
 
-# memoize is made obsolete as of Python 3.2 by functools.lru_cache.
-if sys.version_info.major >= (3, 2):
-    memoize = functools.lru_cache(maxsize=None)
 
-else:
-    def memoize(func):
-        """Memoization decorator. Caches a function's return value each time
-        it is called. Return the cached value when it is called again with the
-        same arguments. Does not support keyword arguments (yet).
-        """
-        cache = {}
+def atomize(func, lock=None):
+    """
+    Decorate a function with a reentrant lock to prevent multiple
+    threads from calling said thread simultaneously.
+    """
 
-        @wraps(func)
-        def wrapped(*args):
-            try:
-                return cache[args]
-            except KeyError:
-                value = func(*args)
-                cache[args] = value
-                return value
-            except TypeError:
-                # uncachable.
-                return func(*args)
+    if lock is None:
+        lock = threading.RLock()
 
-        return wrapped
+    @wraps(func)
+    def atomic(*args, **kwargs):
+        with lock:
+            return func(*args, **kwargs)
+
+    return atomic
 
 
 # @cached(seconds=100)
@@ -111,14 +102,6 @@ def caller(*args, **kwargs):
     return lambda func: func(*args, **kwargs)
 
 
-def compose(*funcs):
-    """Compose a sequence of functions.
-
-    >>> compose(f, g)(x) = f(g(x))
-    """
-    return reduce(lambda g, h: lambda *args, **kwargs: g(h(*args, **kwargs)), funcs)
-
-
 def flip(func):
     """Decorate the given function to reverse the order of its arguments."""
 
@@ -127,18 +110,6 @@ def flip(func):
         return func(*reversed(args), **kwargs)
 
     return flipped
-
-
-def merge(func, *funcs):
-    """Return a function whose positional arguments are determined by
-    evaluating each function in funcs with the given *args, and **kwargs. If
-    funcs = [f1, f2, ...], this is equivalent to:
-
-    return lambda *a, **k: func(f1(*a, **k), f2(*a, **k), ...)
-
-    """
-    call = lambda *args, **kwargs: map(caller(*args, **kwargs), funcs)
-    return compose(uncurry(func), call)
 
 
 class composable(functools.partial):
@@ -252,37 +223,25 @@ class composable(functools.partial):
         return repr(self.func)
 
 
-def atomize(func, lock=None):
+def compose(*funcs):
+    """Compose a sequence of functions.
+
+    >>> compose(f, g)(x) = f(g(x))
     """
-    Decorate a function with a reentrant lock to prevent multiple
-    threads from calling said thread simultaneously.
-    """
-
-    if lock is None:
-        lock = threading.RLock()
-
-    @wraps(func)
-    def atomic(*args, **kwargs):
-        with lock:
-            return func(*args, **kwargs)
-
-    return atomic
+    return reduce(lambda g, h: lambda *args, **kwargs: g(h(*args, **kwargs)), funcs)
 
 
-def vectorize(func):
-    """Decorate a function to always return a sequence rather than a scalar."""
-
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        value = func(*args, **kwargs)
-        if sequences.issequence(value):
-            return value
-        return [value]
-
-    return wrapped
+def constant(x):
+    """Close x under an anonymous function."""
+    return lambda *args, **kwargs: x
 
 
-# TODO: inspect.getcallargs
+@contextlib.contextmanager
+def context(func, *args, **kwargs):
+    """Return a context for lazily evaluating a function for given input."""
+    yield func(*args, **kwargs)
+
+
 def curry(func, n=None):
     """Curry a function for up to n arguments, where by default n is the number
     of fixed, unnamed arguments in func's defintion.
@@ -305,14 +264,53 @@ def curry(func, n=None):
     return curried
 
 
-def uncurry(func):
-    return lambda args=None, kwargs=None: func(*list(args or []), **(kwargs or {}))
+def identity(x):
+    return x
 
 
-@contextlib.contextmanager
-def context(func, *args, **kwargs):
-    """Return a context for lazily evaluating a function for given input."""
-    yield func(*args, **kwargs)
+def iterate(func, x):
+    while True:
+        x = func(x)
+        yield x
+
+
+# memoize is made obsolete as of Python 3.2 by functools.lru_cache.
+if sys.version_info.major >= (3, 2):
+    memoize = functools.lru_cache(maxsize=None)
+
+else:
+    def memoize(func):
+        """Memoization decorator. Caches a function's return value each time
+        it is called. Return the cached value when it is called again with the
+        same arguments. Does not support keyword arguments (yet).
+        """
+        cache = {}
+
+        @wraps(func)
+        def wrapped(*args):
+            try:
+                return cache[args]
+            except KeyError:
+                value = func(*args)
+                cache[args] = value
+                return value
+            except TypeError:
+                # uncachable.
+                return func(*args)
+
+        return wrapped
+
+
+def merge(func, *funcs):
+    """Return a function whose positional arguments are determined by
+    evaluating each function in funcs with the given *args, and **kwargs. If
+    funcs = [f1, f2, ...], this is equivalent to:
+
+    return lambda *a, **k: func(f1(*a, **k), f2(*a, **k), ...)
+
+    """
+    call = lambda *args, **kwargs: map(caller(*args, **kwargs), funcs)
+    return compose(uncurry(func), call)
 
 
 def pipe(func):
@@ -339,16 +337,18 @@ def scan(func, sequence, init=None):
         yield curr
 
 
-def iterate(func, x):
-    while True:
-        x = func(x)
-        yield x
+def uncurry(func):
+    return lambda args=None, kwargs=None: func(*list(args or []), **(kwargs or {}))
 
 
-def identity(x):
-    return x
+def vectorize(func):
+    """Decorate a function to always return a sequence rather than a scalar."""
 
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        value = func(*args, **kwargs)
+        if sequences.issequence(value):
+            return value
+        return [value]
 
-def constant(x):
-    """Close x under an anonymous function."""
-    return lambda *args, **kwargs: x
+    return wrapped
