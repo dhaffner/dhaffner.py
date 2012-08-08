@@ -19,7 +19,7 @@ def files(directory, pattern):
     return itertools.imap(join, fnmatch.filter(os.listdir(directory), pattern))
 
 
-def find(pattern, string, default=None):
+def find(pattern, string, default=None, n=0):
     """Return the first match from a search for pattern in string."""
     matches = re.finditer(pattern, string)
     # If a default was specified, handle a potential exception.
@@ -31,7 +31,7 @@ def find(pattern, string, default=None):
             raise
         return default
 
-    return match.group(0)
+    return match.group(n)
 
 
 def maybe(p, func, x):
