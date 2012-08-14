@@ -65,35 +65,39 @@ def atomize(func, lock=None):
 # def f(x, y=False):
 #     ...
 #
-def cached(seconds=0, cache=None):
+def cache(seconds=0):
 
-    def key(func, args, kw):
-        kwargs = frozenset((kw or {}).iteritems())
-        return (func, args, kwargs)
+    def key(func, args, kwargs):
+        return (args, frozenset((kwargs or {}).iteritems()))
 
-    if cache is None:
-        cache = {}
+    def wrapper(func):
+        try:
+            func.__cache__
+        except AttributeError:
+            pass
+        else:
+            return func
 
-    def wrap(func):
+        _cache = func.__cache__ = {}
 
         def add(k):
-            func, args, kw = k
-            v = func(*args, **dict(kw))
-            cache[k] = (time.time(), v)
-            return v
+            args, kwargs = k
+            value = func(*args, **dict(kwargs))
+            _cache[k] = (time.time(), value)
+            return value
 
         @wraps(func)
         def wrapped(*args, **kwargs):
             k = key(func, args, kwargs)
-            if k in cache:
-                t, v = cache.get(k)
-                if (time.time() - t) < seconds:
+            if k in _cache:
+                t, v = _cache.get(k)
+                if (time.time() - t) <= seconds:
                     return v
             return add(k)
 
         return wrapped
 
-    return wrap
+    return wrapper
 
 
 def caller(*args, **kwargs):
