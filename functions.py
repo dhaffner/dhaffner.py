@@ -2,7 +2,7 @@
 
 # Some high-order functions and decorators.
 
-__all__ = ('atomize', 'cached', 'caller', 'composable', 'compose', 'constant',
+__all__ = ('atomize', 'cache', 'caller', 'composable', 'compose', 'constant',
            'context', 'curry', 'flip', 'identity', 'iterate', 'memoize',
            'merge', 'pipe', 'scan', 'uncurry', 'vectorize', 'wraps')
 
@@ -71,14 +71,7 @@ def cache(seconds=0):
         return (args, frozenset((kwargs or {}).iteritems()))
 
     def wrapper(func):
-        try:
-            func.__cache__
-        except AttributeError:
-            pass
-        else:
-            return func
-
-        _cache = func.__cache__ = {}
+        _cache = {}
 
         def add(k):
             args, kwargs = k
