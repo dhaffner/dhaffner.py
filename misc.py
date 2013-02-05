@@ -4,19 +4,25 @@
 
 __all__ = ('files', 'find', 'maybe', 'noop', 'splitlines', 'throws', 'unescape')
 
-import fnmatch
-import functools
-import htmlentitydefs
-import itertools
-import os
-import random
 import re
+
+from fnmatch import filter as fnmatch_filter
+from functools import partial
+from os import listdir, path
+from random import random
+
+from common import map, PY3
+
+if PY3:
+    from html.entities import name2codepoint
+else:
+    from htmlentitydefs import name2codepoint
 
 
 def files(directory, pattern):
     """Return all filenames from directory which match given pattern."""
-    join = functools.partial(os.path.join, directory)
-    return itertools.imap(join, fnmatch.filter(os.listdir(directory), pattern))
+    join = partial(path.join, directory)
+    return map(join, fnmatch_filter(listdir(directory), pattern))
 
 
 def find(pattern, string, default=None, n=0):
@@ -36,7 +42,7 @@ def find(pattern, string, default=None, n=0):
 
 def maybe(p, func, x):
     """With probability p, evaluate func(x). Always return x."""
-    if random.random() <= p:
+    if random() <= p:
         func(x)
     return x
 
@@ -80,7 +86,7 @@ def unescape(text):
         else:
             # named entity
             try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                text = unichr(name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text  # leave as-is

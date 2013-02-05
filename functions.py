@@ -6,42 +6,17 @@ __all__ = ('atomize', 'cache', 'caller', 'composable', 'compose', 'constant',
            'context', 'curry', 'flip', 'identity', 'iterate', 'memoize',
            'merge', 'pipe', 'scan', 'uncurry', 'vectorize', 'wraps')
 
-import contextlib
-import functools
 import operator
-import inspect
-import itertools
-import sys
-import threading
-import time
 
-import sequences
+from contextlib import contextmanager
+from functools import partial
+from inspect import getargspec
+from sys import hexversion
+from threading import RLock
+from time import time
 
-if sys.hexversion < 0x030300b1:
-    def update_wrapper(wrapper,
-                       wrapped,
-                       assigned=functools.WRAPPER_ASSIGNMENTS,
-                       updated=functools.WRAPPER_UPDATES):
-        wrapper.__wrapped__ = wrapped
-        for attr in assigned:
-            try:
-                value = getattr(wrapped, attr)
-            except AttributeError:
-                pass
-            else:
-                setattr(wrapper, attr, value)
-        for attr in updated:
-            getattr(wrapper, attr).update(getattr(wrapped, attr, {}))
-        return wrapper
-
-    def wraps(wrapped,
-              assigned=functools.WRAPPER_ASSIGNMENTS,
-              updated=functools.WRAPPER_UPDATES):
-        return functools.partial(update_wrapper,
-                        wrapped=wrapped, assigned=assigned, updated=updated)
-
-else:
-    wraps = functools.wraps
+from sequences import first, last, issequence, take
+from common import compose, map, filter, reduce, wraps
 
 
 def atomize(func, lock=None):
@@ -51,7 +26,7 @@ def atomize(func, lock=None):
     """
 
     if lock is None:
-        lock = threading.RLock()
+        lock = RLock()
 
     @wraps(func)
     def atomic(*args, **kwargs):
@@ -76,7 +51,7 @@ def cache(seconds=0):
         def add(k):
             args, kwargs = k
             value = func(*args, **dict(kwargs))
-            _cache[k] = (time.time(), value)
+            _cache[k] = (time(), value)
             return value
 
         @wraps(func)
@@ -84,7 +59,7 @@ def cache(seconds=0):
             k = key(func, args, kwargs)
             if k in _cache:
                 t, v = _cache.get(k)
-                if (time.time() - t) <= seconds:
+                if (time() - t) <= seconds:
                     return v
             return add(k)
 
@@ -101,7 +76,6 @@ def caller(*args, **kwargs):
 
 def flip(func):
     """Decorate the given function to reverse the order of its arguments."""
-
     @wraps(func)
     def flipped(*args, **kwargs):
         return func(*reversed(args), **kwargs)
@@ -109,7 +83,12 @@ def flip(func):
     return flipped
 
 
-class composable(functools.partial):
+class composable(object):
+    def __init__(self, func=lambda x: x, *args, **kwargs):
+        self.func = partial(func, *args, **kwargs) if (args or kwargs) else func
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
 
     def compose(self, *funcs):
         return composable(compose(*funcs))
@@ -169,9 +148,7 @@ class composable(functools.partial):
 
     # iterate
     def __pow__(self, n):
-        return self.compose(sequences.last,
-                            functools.partial(sequences.take, n),
-                            iterate(self))
+        return self.compose(last, partial(take, n), iterate(self))
 
     def __neg__(self):
         return self.compose(operator.neg, self)
@@ -220,20 +197,12 @@ class composable(functools.partial):
         return repr(self.func)
 
 
-def compose(*funcs):
-    """Compose a sequence of functions.
-
-    >>> compose(f, g)(x) = f(g(x))
-    """
-    return reduce(lambda g, h: lambda *args, **kwargs: g(h(*args, **kwargs)), funcs)
-
-
 def constant(x):
     """Close x under an anonymous function."""
     return lambda *args, **kwargs: x
 
 
-@contextlib.contextmanager
+@contextmanager
 def context(func, *args, **kwargs):
     """Return a context for lazily evaluating a function for given input."""
     yield func(*args, **kwargs)
@@ -245,9 +214,8 @@ def curry(func, n=None):
     """
 
     def nargs(func):
-        args = operator.attrgetter('defaults', 'args')(inspect.getargspec(func))
-        return abs(reduce(operator.sub,
-                          itertools.imap(len, itertools.ifilter(bool, args))))
+        args = operator.attrgetter('defaults', 'args')(getargspec(func))
+        return abs(reduce(operator.sub, map(len, filter(bool, args))))
 
     if n is None:
         n = nargs(func)
@@ -256,7 +224,7 @@ def curry(func, n=None):
     def curried(*args, **kwargs):
         if len(args) >= n:
             return func(*args, **kwargs)
-        return curry(functools.partial(func, *args, **kwargs), n - len(args))
+        return curry(partial(func, *args, **kwargs), n - len(args))
 
     return curried
 
@@ -272,8 +240,9 @@ def iterate(func, x):
 
 
 # memoize is made obsolete as of Python 3.2 by functools.lru_cache.
-if sys.hexversion >= 0x03020000:
-    memoize = functools.lru_cache(maxsize=None)
+if hexversion >= 0x03020000:
+    from functools import lru_cache
+    memoize = lru_cache(maxsize=None)
 
 else:
     def memoize(func):
@@ -325,7 +294,7 @@ def pipe(func):
 
 def scan(func, sequence, init=None):
     if init is None:
-        curr = sequences.first(sequence)
+        curr = first(sequence)
     else:
         curr = init
         yield init
@@ -344,8 +313,6 @@ def vectorize(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         value = func(*args, **kwargs)
-        if sequences.issequence(value):
-            return value
-        return [value]
+        return value if issequence(value) else [value]
 
     return wrapped
