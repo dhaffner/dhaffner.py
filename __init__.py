@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-__all__ = ('functions', 'misc', 'sequences')
+__all__ = ('functions', 'iterators', 'misc')
 
 import functions
 import misc
-import sequences
+import iterators
