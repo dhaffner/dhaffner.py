@@ -15,8 +15,8 @@ from sys import hexversion
 from threading import RLock
 from time import time
 
-from sequences import first, last, issequence, take
-from common import compose, map, filter, reduce, wraps
+from iterators import compact, first, last, issequence, take
+from common import compose, map, filter, reduce, wraps, unstar
 
 
 def atomize(func, lock=None):
@@ -68,10 +68,10 @@ def cache(seconds=0):
     return wrapper
 
 
-def caller(*args, **kwargs):
+def caller(args, kwargs=None):
     """Return a lambda that takes a callable as input and applies it to the given arguments.
     """
-    return lambda func: func(*args, **kwargs)
+    return lambda func: func(*args, **(kwargs or {}))
 
 
 def flip(func):
@@ -91,76 +91,76 @@ class composable(object):
         return self.func(*args, **kwargs)
 
     def compose(self, *funcs):
-        return composable(compose(*funcs))
+        return self.__class__(compose(*funcs))
 
     def merge(self, func, other):
-        return composable(merge(func, self, other))
+        return self.__class__(merge(func, self, other))
 
-    def __add__(self, other):
-        return self.merge(operator.add, other)
+    def __add__(self, other, add=operator.add):
+        return self.merge(add, other)
 
-    def __sub__(self, other):
-        return self.merge(operator.sub, other)
+    def __sub__(self, other, sub=operator.sub):
+        return self.merge(sub, other)
 
-    def __mul__(self, other):
-        return self.merge(operator.mul, other)
+    def __mul__(self, other, mul=operator.mul):
+        return self.merge(mul, other)
 
-    def __floordiv__(self, other):
-        return self.merge(operator.floordiv, other)
+    def __floordiv__(self, other, floordiv=operator.floordiv):
+        return self.merge(floordiv, other)
 
     __divmod__ = __floordiv__
 
-    def __mod__(self, other):
-        return self.merge(operator.mod, other)
+    def __mod__(self, other, mod=operator.mod):
+        return self.merge(mod, other)
 
-    def __and__(self, other):
-        return self.merge(operator.and_, other)
+    def __and__(self, other, and_=operator.and_):
+        return self.merge(and_, other)
 
-    def __xor__(self, other):
-        return self.merge(operator.xor, other)
+    def __xor__(self, other, xor=operator.xor):
+        return self.merge(xor, other)
 
-    def __or__(self, other):
-        return self.merge(operator.or_, other)
+    def __or__(self, other, or_=operator.or_):
+        return self.merge(or_, other)
 
-    def __div__(self, other):
-        return self.merge(operator.div, other)
+    def __div__(self, other, div=operator.div):
+        return self.merge(div, other)
 
-    def __truediv__(self, other):
-        return self.merge(operator.truediv, other)
+    def __truediv__(self, other, truediv=operator.truediv):
+        return self.merge(truediv, other)
 
-    def __lt__(self, other):
-        return self.merge(operator.lt, other)
+    def __lt__(self, other, lt=operator.lt):
+        return self.merge(lt, other)
 
-    def __le__(self, other):
-        return self.merge(operator.le, other)
+    def __le__(self, other, le=operator.le):
+        return self.merge(le, other)
 
-    def __eq__(self, other):
-        return self.merge(operator.eq, other)
+    def __eq__(self, other, eq=operator.eq):
+        return self.merge(eq, other)
 
-    def __ne__(self, other):
-        return self.merge(operator.ne, other)
+    def __ne__(self, other, ne=operator.ne):
+        return self.merge(ne, other)
 
-    def __ge__(self, other):
-        return self.merge(operator.ge, other)
+    def __ge__(self, other, ge=operator.ge):
+        return self.merge(ge, other)
 
-    def __gt__(self, other):
-        return self.merge(operator.gt, other)
+    def __gt__(self, other, gt=operator.gt):
+        return self.merge(gt, other)
 
     # iterate
     def __pow__(self, n):
         return self.compose(last, partial(take, n), iterate(self))
 
-    def __neg__(self):
-        return self.compose(operator.neg, self)
+    def __neg__(self, neg=operator.neg):
+        return self.compose(neg, self)
 
-    def __pos__(self):
-        return self.compose(operator.pos, self)
+    def __pos__(self, pos=operator.pos):
+        return self.compose(pos, self)
 
-    def __abs__(self):
-        return self.compose(operator.abs, self)
+    def __abs__(self, abs=operator.abs):
+        return self.compose(abs, self)
 
-    def __invert__(self):
-        return self.compose(operator.invert, self)
+    def __invert__(self, invert=operator.invert):
+        return self.compose(invert, self)
 
     __inv__ = __invert__
 
@@ -168,27 +168,27 @@ class composable(object):
     def __lshift__(self, other):
         return self.compose(self, other)
 
-    __rshift__ = flip(__lshift__)
+    # __rshift__ = flip(__lshift__)
 
-    __radd__ = flip(__add__)
+    # __radd__ = flip(__add__)
 
-    __rsub__ = flip(__sub__)
+    # __rsub__ = flip(__sub__)
 
-    __rmul__ = flip(__mul__)
+    # __rmul__ = flip(__mul__)
 
-    __rdiv__ = flip(__div__)
+    # __rdiv__ = flip(__div__)
 
-    __rtruediv__ = flip(__truediv__)
+    # __rtruediv__ = flip(__truediv__)
 
-    __rfloordiv__ = flip(__floordiv__)
+    # __rfloordiv__ = flip(__floordiv__)
 
-    __rmod__ = flip(__mod__)
+    # __rmod__ = flip(__mod__)
 
-    __rdivmod__ = flip(__divmod__)
+    # __rdivmod__ = flip(__divmod__)
 
-    __rlshift__ = flip(__lshift__)
+    # __rlshift__ = flip(__lshift__)
 
-    __rrshift__ = flip(__rshift__)
+    # __rrshift__ = flip(__rshift__)
 
     def __str__(self):
         return str(self.func)
@@ -208,14 +208,21 @@ def context(func, *args, **kwargs):
     yield func(*args, **kwargs)
 
 
+# def nargs(func):
+#     args = operator.attrgetter('args', 'defaults')(getargspec(func))
+#     return reduce(lambda a, b=0: a - b, map(len, filter(bool, args)))
+
+nargs = compose(partial(reduce, operator.sub),
+                partial(map, len),
+                compact,
+                operator.attrgetter('args', 'defaults'),
+                getargspec)
+
+
 def curry(func, n=None):
     """Curry a function for up to n arguments, where by default n is the number
     of fixed, unnamed arguments in func's defintion.
     """
-
-    def nargs(func):
-        args = operator.attrgetter('defaults', 'args')(getargspec(func))
-        return abs(reduce(operator.sub, map(len, filter(bool, args))))
 
     if n is None:
         n = nargs(func)
@@ -275,8 +282,8 @@ def merge(func, *funcs):
     return lambda *a, **k: func(f1(*a, **k), f2(*a, **k), ...)
 
     """
-    call = lambda *args, **kwargs: map(caller(*args, **kwargs), funcs)
-    return compose(uncurry(func), call)
+    call = lambda *args, **kwargs: map(caller(args, kwargs), funcs)
+    return compose(unstar(func), call)
 
 
 def pipe(func):

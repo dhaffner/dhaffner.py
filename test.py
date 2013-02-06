@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import functions, misc, sequences
+import functions, misc, iterators
 
 import random
 import unittest
@@ -29,7 +29,7 @@ class TestFunctions(unittest.TestCase):
 
     def test_caller(self):
         caller = functions.caller(['one', 'two'])
-        self.assertEqual('onetwo', caller(''.join))
+        self.assertEqual('onetwo', caller(operator.add))
 
 
 class TestFunctionsComposable(unittest.TestCase):

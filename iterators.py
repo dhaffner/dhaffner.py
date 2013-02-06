@@ -13,6 +13,7 @@ from operator import mul
 
 from common import compose, filter, filterfalse, zip
 
+
 # Remove false values from sequence.
 compact = partial(filter, bool)
 
@@ -43,6 +44,7 @@ def exhaust(iterator, deque=deque):
 # Get first element of a sequence
 first = compose(next, iter)
 
+
 # Flatten a sequence one level of iteration.
 flatten = chain.from_iterable
 
@@ -61,7 +63,8 @@ def issequence(obj, isinstance=isinstance, Sequence=Sequence):
 
     return isinstance(obj, Sequence)
 
-# Get the last element of a iterable.
+
+# Get the last element of an iterable.
 last = partial(reduce, lambda _, y: y)
 
 
@@ -104,11 +107,12 @@ class reusable(object):
             self.reset()
             raise
 
+
 # Return a tuple containing the next element in the sequence,
 # and an iterable containing the rest of the sequence.
 #
-# e.g.: head, tail = split(sequence)
-split = compose(lambda iterator: (next(iterator), iterator), iter)
+# e.g: head, tail = split(sequence)
+split = compose(lambda iterator, next=next: (next(iterator), iterator), iter)
 
 
 def tag(t, iterable, zip=zip, repeat=repeat):
@@ -116,16 +120,14 @@ def tag(t, iterable, zip=zip, repeat=repeat):
     return zip(repeat(t), iterable)
 
 
-def take(n, iterable):
+def take(n, iterable, islice=islice):
     return islice(iterable, n)
 
 
-def unique(iterable):
+def unique(iterable, filterfalse=filterfalse):
     """Return only unique elements from the sequence."""
     seen = set()
     add = seen.add
     for element in filterfalse(seen.__contains__, iterable):
         add(element)
         yield element
-
-

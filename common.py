@@ -1,6 +1,7 @@
-__all__ = ('compose', 'map', 'filter', 'filterfalse', 'reduce', 'range', 'zip',
-           'wraps', 'PY2', 'PY3')
+__all__ = ('filter', 'filterfalse', 'map', 'range', 'reduce', 'wraps', 'zip',
+           'compose', 'star', 'unstar', 'PY2', 'PY3')
 
+from functools import partial
 from sys import version_info, hexversion
 
 PY3 = version_info[0] == 3
@@ -16,14 +17,14 @@ if PY3:
     zip = zip
 
 elif PY2:
-    from itertools import (imap as map, ifilter as filter,
-                           ifilterfalse as filterfalse, izip as zip)
+    from itertools import (ifilter as filter, ifilterfalse as filterfalse,
+                           imap as map, izip as zip)
     range = xrange
     reduce = reduce
 
 # functools.wraps
 if hexversion < 0x030300b1:
-    from functools import partial, WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
+    from functools import WRAPPER_ASSIGNMENTS, WRAPPER_UPDATES
 
     def update_wrapper(wrapper, wrapped, assigned=WRAPPER_ASSIGNMENTS,
                        updated=WRAPPER_UPDATES):
@@ -47,9 +48,13 @@ else:
     wraps = wraps
 
 
-def compose(*funcs):
-    """Compose a sequence of functions.
+def star(func):
+    return lambda *args: func(args)
 
-    >>> compose(f, g)(x) = f(g(x))
-    """
-    return reduce(lambda g, h: lambda *args, **kwargs: g(h(*args, **kwargs)), funcs)
+
+def unstar(func):
+    return lambda args: func(*args)
+
+
+compose = star(partial(reduce, lambda f, g: lambda *args, **kwargs: f(g(*args, **kwargs))))
+
