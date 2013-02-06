@@ -9,6 +9,7 @@ __all__ = ('compact', 'consume', 'drop', 'exhaust', 'first', 'flatten',
 from collections import deque, Sequence
 from functools import partial
 from itertools import islice, chain, tee, repeat
+from operator import mul
 
 from common import compose, filter, filterfalse, zip
 
@@ -16,21 +17,25 @@ from common import compose, filter, filterfalse, zip
 compact = partial(filter, bool)
 
 
-def consume(iterator, n=None):
+def consume(iterator, n=None, next=next, islice=islice, deque=deque):
     """Consume a given amount of elements in from a generator. If no amount is
     specified, exhaust the entire sequence.
     """
     if n is not None:
         next(islice(iterator, n, n), None)
     else:
-        exhaust(iterator)
+        deque(iterator, maxlen=0)
 
 
-def drop(iterable, n):
+def dotproduct(vec1, vec2, sum=sum, map=map, mul=mul):
+    return sum(map(mul, vec1, vec2))
+
+
+def drop(iterable, n, islice=islice):
     return islice(iterable, n, None)
 
 
-def exhaust(iterator):
+def exhaust(iterator, deque=deque):
     """Exhaust a given iterator."""
     deque(iterator, maxlen=0)
 
@@ -42,7 +47,7 @@ first = compose(next, iter)
 flatten = chain.from_iterable
 
 
-def issequence(obj):
+def issequence(obj, isinstance=isinstance, Sequence=Sequence):
     """Determine whether obj is a sequence. Strings are not considered
     sequences.
     """
@@ -60,7 +65,7 @@ def issequence(obj):
 last = partial(reduce, lambda _, y: y)
 
 
-def nth(iterable, n, default=None):
+def nth(iterable, n, next=next, islice=islice, default=None):
     """Returns the nth item or a default value
 
     http://docs.python.org/3.4/library/itertools.html#itertools-recipes
@@ -106,7 +111,7 @@ class reusable(object):
 split = compose(lambda iterator: (next(iterator), iterator), iter)
 
 
-def tag(t, iterable):
+def tag(t, iterable, zip=zip, repeat=repeat):
     """Tag (pair) t with each element in the given sequence"""
     return zip(repeat(t), iterable)
 
@@ -122,4 +127,5 @@ def unique(iterable):
     for element in filterfalse(seen.__contains__, iterable):
         add(element)
         yield element
+
 
