@@ -3,8 +3,8 @@
 # Some high-order functions and decorators.
 
 __all__ = ('atomize', 'cache', 'caller', 'composable', 'compose', 'constant',
-           'context', 'curry', 'flip', 'identity', 'iterate', 'memoize',
-           'merge', 'pipe', 'scan', 'uncurry', 'vectorize', 'wraps')
+           'context', 'curry', 'each', 'flip', 'identity', 'iterate', 'memoize',
+           'merge', 'nargs', 'pipe', 'scan', 'uncurry', 'vectorize', 'wraps')
 
 import operator
 
@@ -34,6 +34,11 @@ def atomize(func, lock=None):
             return func(*args, **kwargs)
 
     return atomic
+
+
+def each(iterable, func):
+    for element in iterable:
+        func(element)
 
 
 # @cached(seconds=100)
