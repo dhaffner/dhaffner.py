@@ -5,9 +5,9 @@
 #
 # Might delete this module later if it seems unnecessary.
 
-__all__ = ('dictfilter', 'dictitemgetter', 'dictmap')
+__all__ = ('dictfilter', 'dictitemgetter', 'dictmap', 'throws')
 
-from operator import itemgetter
+from operator import attrgetter, itemgetter
 
 from common import map, zip
 
@@ -21,11 +21,28 @@ def dictfilter(func, dictionary):
                 if func(value))
 
 
-def dictitemgetter(*keys):
-    keys = tuple(keys)
-    getvalues = itemgetter(*keys)
+def dictgetter(getterfunc):  # Not included in __all__
 
-    def getter(dictionary):
-        return dict(zip(keys, getvalues(dictionary)))
+    def getter(*keys):
+        keys = tuple(keys)
+        values = getterfunc(*keys)
+        return lambda obj: dict(zip(keys, values(obj)))
 
     return getter
+
+
+dictattrgetter = dictgetter(attrgetter)
+
+
+dictitemgetter = dictgetter(itemgetter)
+
+
+def throws(thunk, exception):
+    if isinstance(exception, Exception):
+        exception = (exception, )
+    try:
+        thunk()
+    except exception:
+        return True
+    else:
+        return False

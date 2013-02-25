@@ -2,10 +2,11 @@
 
 # Miscellaneous functions.
 
-__all__ = ('files', 'find', 'maybe', 'noop', 'splitlines', 'throws', 'unescape')
+__all__ = ('files', 'find', 'maybe', 'noop', 'splitlines', 'unescape')
 
 import re
 
+from contextlib import contextmanager
 from fnmatch import filter as fnmatch_filter
 from functools import partial
 from os import listdir, path
@@ -58,17 +59,6 @@ def splitlines(text, exp=re.compile(r'^.*$', re.MULTILINE)):
         yield match.group(0)
 
 
-def throws(thunk, exception):
-    if isinstance(exception, Exception):
-        exception = (exception, )
-    try:
-        thunk()
-    except exception:
-        return True
-    else:
-        return False
-
-
 def unescape(text):
     """Unescape HTML characters in the input.
     """
@@ -92,3 +82,15 @@ def unescape(text):
         return text  # leave as-is
 
     return re.sub("&#?\w+;", fixup, text)
+
+
+@contextmanager
+def signalcontext(signalnum, callback):
+    import signal
+
+    def handler(signalnum, frame):
+        callback()
+
+    signal.signal(signalnum, handler)
+    yield
+    signal.pause()
