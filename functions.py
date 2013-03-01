@@ -213,10 +213,6 @@ def context(func, *args, **kwargs):
     yield func(*args, **kwargs)
 
 
-# def nargs(func):
-#     args = operator.attrgetter('args', 'defaults')(getargspec(func))
-#     return reduce(lambda a, b=0: a - b, map(len, filter(bool, args)))
-
 nargs = compose(partial(reduce, operator.sub),
                 partial(map, len),
                 compact,
