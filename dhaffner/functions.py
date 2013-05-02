@@ -1,10 +1,10 @@
-#!/usr/bin/env python
-
-# Some high-order functions and decorators.
+"""
+Some high-order functions and decorators.
+"""
 
 __all__ = ('atomize', 'cache', 'caller', 'composable', 'compose', 'constant',
            'context', 'curry', 'each', 'flip', 'identity', 'iterate', 'memoize',
-           'merge', 'nargs', 'pipe', 'scan', 'uncurry', 'vectorize', 'wraps')
+           'merge', 'nargs', 'pipe', 'scan', 'vectorize', 'wraps')
 
 import operator
 
@@ -16,13 +16,12 @@ from threading import RLock
 from time import time
 
 from iterators import compact, first, last, issequence, take
-from common import compose, map, filter, reduce, wraps, unstar
+from common import compose, map, reduce, wraps, unstar
 
 
 def atomize(func, lock=None):
-    """
-    Decorate a function with a reentrant lock to prevent multiple
-    threads from calling said thread simultaneously.
+    """Decorate a function with a reentrant lock to prevent multiple threads
+    from calling said thread simultaneously.
     """
 
     if lock is None:
@@ -36,16 +35,8 @@ def atomize(func, lock=None):
     return atomic
 
 
-def each(iterable, func):
-    for element in iterable:
-        func(element)
-
-
-# @cached(seconds=100)
-# def f(x, y=False):
-#     ...
-#
 def cache(seconds=0):
+    """Decorate a function to cache return values. Memoize with a TTL."""
 
     def key(func, args, kwargs):
         return (args, frozenset((kwargs or {}).iteritems()))
@@ -74,7 +65,8 @@ def cache(seconds=0):
 
 
 def caller(args, kwargs=None):
-    """Return a lambda that takes a callable as input and applies it to the given arguments.
+    """Return a lambda that takes a callable as input and applies it to the
+    given arguments.
     """
     return lambda func: func(*args, **(kwargs or {}))
 
@@ -209,10 +201,11 @@ def constant(x):
 
 @contextmanager
 def context(func, *args, **kwargs):
-    """Return a context for lazily evaluating a function for given input."""
+    """Return a context for lazily evaluating a function with given input."""
     yield func(*args, **kwargs)
 
 
+# Return the number of position arguments in the given function.
 nargs = compose(partial(reduce, operator.sub),
                 partial(map, len),
                 compact,
@@ -222,7 +215,7 @@ nargs = compose(partial(reduce, operator.sub),
 
 def curry(func, n=None):
     """Curry a function for up to n arguments, where by default n is the number
-    of fixed, unnamed arguments in func's defintion.
+    of fixed, unnamed arguments in the function defintion.
     """
 
     if n is None:
@@ -238,10 +231,13 @@ def curry(func, n=None):
 
 
 def identity(x):
+    """Identity function; return the input unchanged."""
     return x
 
 
 def iterate(func, x):
+    """Return a generator that will repeatedly call a function with a given
+    initial input, feeding the resulting value back into said function."""
     while True:
         x = func(x)
         yield x
@@ -281,7 +277,6 @@ def merge(func, *funcs):
     funcs = [f1, f2, ...], this is equivalent to:
 
     return lambda *a, **k: func(f1(*a, **k), f2(*a, **k), ...)
-
     """
     call = lambda *args, **kwargs: map(caller(args, kwargs), funcs)
     return compose(unstar(func), call)
@@ -309,10 +304,6 @@ def scan(func, sequence, init=None):
     for element in sequence:
         curr = func(curr, element)
         yield curr
-
-
-def uncurry(func):
-    return lambda args=None, kwargs=None: func(*list(args or []), **(kwargs or {}))
 
 
 def vectorize(func):

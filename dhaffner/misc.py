@@ -1,6 +1,6 @@
-#!/usr/bin/env python
-
-# Miscellaneous functions.
+"""
+Miscellaneous functions.
+"""
 
 __all__ = ('files', 'find', 'maybe', 'noop', 'splitlines', 'unescape')
 

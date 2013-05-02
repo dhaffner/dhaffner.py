@@ -29,10 +29,12 @@ def consume(iterator, n=None, next=next, islice=islice, deque=deque):
 
 
 def dotproduct(vec1, vec2, sum=sum, map=map, mul=mul):
+    """Compute and return the dot product of two vectors (sequences)."""
     return sum(map(mul, vec1, vec2))
 
 
 def drop(iterable, n, islice=islice):
+    """Drop the first n elements of the given iterable."""
     return islice(iterable, n, None)
 
 
@@ -93,10 +95,8 @@ class reusable(object):
         return self
 
     def reset(self):
-        """
-        Resets the iterator to the start.
-
-        Any remaining values in the current iteration are discarded.
+        """Reset the iterator to the start. Discard any remaining values in the
+        current iteration.
         """
         self.iterator, self.iterable = tee(self.iterable)
 
@@ -110,8 +110,6 @@ class reusable(object):
 
 # Return a tuple containing the next element in the sequence,
 # and an iterable containing the rest of the sequence.
-#
-# e.g: head, tail = split(sequence)
 split = compose(lambda iterator, next=next: (next(iterator), iterator), iter)
 
 
@@ -121,6 +119,7 @@ def tag(t, iterable, zip=zip, repeat=repeat):
 
 
 def take(n, iterable, islice=islice):
+    """Take the first n elements of the given iterable."""
     return islice(iterable, n)
 
 
