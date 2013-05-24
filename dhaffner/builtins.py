@@ -6,7 +6,8 @@ Might delete this module later if it seems unnecessary.
 
 __all__ = ('dictfilter', 'dictitemgetter', 'dictmap', 'throws')
 
-from operator import attrgetter, itemgetter
+from functools import partial
+from operator import attrgetter, itemgetter, methodcaller
 
 from common import map, zip
 
@@ -39,6 +40,23 @@ dictattrgetter = dictgetter(attrgetter)
 
 
 dictitemgetter = dictgetter(itemgetter)
+
+
+#
+#   Tuples
+#
+
+
+class composite(tuple):
+    def __getattr__(self, name):
+
+        def attrs(*args, **kwargs):
+            return self(methodcaller(name, *args, **kwargs))
+
+        return attrs
+
+    def __call__(self, func):
+        return self.__class__(map(func, self))
 
 
 #
