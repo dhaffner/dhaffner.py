@@ -26,7 +26,7 @@ def consume(iterator, n=None, next=next, islice=islice, deque=deque):
     if n is not None:
         next(islice(iterator, n, n), None)
     else:
-        deque(iterator, maxlen=0)
+        exhaust(iterator)
 
 
 def dotproduct(vec1, vec2, sum=sum, map=map, mul=mul):
@@ -43,11 +43,8 @@ def drop(iterable, n, islice=islice):
     return islice(iterable, n, None)
 
 
-def exhaust(iterator, deque=deque):
-    """
-    Exhaust a given iterator.
-    """
-    deque(iterator, maxlen=0)
+# Exhaust a given iterator.
+exhaust = deque(maxlen=0).extend
 
 
 # Get first element of a sequence
@@ -66,11 +63,9 @@ def issequence(obj, isinstance=isinstance, Sequence=Sequence):
     try:
         obj.strip
     except:
-        pass
+        return isinstance(obj, Sequence)
     else:
         return False
-
-    return isinstance(obj, Sequence)
 
 
 # Get the last element of an iterable.
@@ -99,6 +94,7 @@ def partition(items, predicate=bool):
             (item for pred, item in b if pred))
 
 
+# TODO: better name for this function
 def pick(iterable):
     """
     Yield elements of sequence, repeating the last element infinitely after
