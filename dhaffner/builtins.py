@@ -60,22 +60,6 @@ class composite(tuple):
 
 
 #
-#   Exceptions
-#
-
-
-def throws(thunk, exception):
-    if isinstance(exception, Exception):
-        exception = (exception, )
-    try:
-        thunk()
-    except exception:
-        return True
-    else:
-        return False
-
-
-#
 #   Properties
 #
 
