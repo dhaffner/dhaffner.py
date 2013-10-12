@@ -1,9 +1,8 @@
-"""
-Some high-order functions and decorators.
-"""
+# -*- coding: utf-8 -*-
+''':class:`functions` Some high-order functions and decorators.'''
 
-__all__ = ('atomize', 'cache', 'caller', 'composable', 'compose', 'constant',
-           'context', 'curry', 'each', 'flip', 'identity', 'iterate', 'memoize',
+__all__ = ('atomize', 'caller', 'composable', 'compose', 'constant',
+           'context', 'curry', 'flip', 'identity', 'iterate', 'memoize',
            'merge', 'nargs', 'pipe', 'scan', 'vectorize', 'wraps')
 
 import operator
@@ -15,13 +14,18 @@ from sys import hexversion
 from threading import RLock
 from time import time
 
-from iterators import compact, first, last, issequence, take
-from common import compose, map, reduce, wraps, unstar
+from six.moves import map, reduce
+
+from .iterators import compact, first, last, issequence, take
+from .common import compose, wraps, unstar
 
 
 def atomize(func, lock=None):
-    """Decorate a function with a reentrant lock to prevent multiple threads
-    from calling said thread simultaneously.
+    """Decorate `func` with a reentrant lock to prevent multiple threads
+    from calling said `func` simultaneously.
+
+    :argument func: the function to decorate
+    :argument lock: the lock to use (optional)
     """
 
     if lock is None:
@@ -33,35 +37,6 @@ def atomize(func, lock=None):
             return func(*args, **kwargs)
 
     return atomic
-
-
-def cache(seconds=0):
-    """Decorate a function to cache return values. Memoize with a TTL."""
-
-    def key(func, args, kwargs):
-        return (args, frozenset((kwargs or {}).iteritems()))
-
-    def wrapper(func):
-        _cache = {}
-
-        def add(k):
-            args, kwargs = k
-            value = func(*args, **dict(kwargs))
-            _cache[k] = (time(), value)
-            return value
-
-        @wraps(func)
-        def wrapped(*args, **kwargs):
-            k = key(func, args, kwargs)
-            if k in _cache:
-                t, v = _cache.get(k)
-                if (time() - t) <= seconds:
-                    return v
-            return add(k)
-
-        return wrapped
-
-    return wrapper
 
 
 def caller(args, kwargs=None):

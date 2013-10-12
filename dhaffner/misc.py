@@ -12,7 +12,9 @@ from functools import partial
 from os import listdir, path
 from random import random
 
-from common import map, PY3
+from six.moves import map
+
+from common import PY3
 
 if PY3:
     from html.entities import name2codepoint

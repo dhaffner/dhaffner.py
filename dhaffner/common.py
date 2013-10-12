@@ -8,19 +8,11 @@ PY3 = version_info[0] == 3
 PY2 = version_info[0] == 2
 
 if PY3:
-    from functools import reduce
     from itertools import filterfalse
-    map = map
-    filter = filter
-    range = range
-    reduce = reduce
-    zip = zip
 
 elif PY2:
-    from itertools import (ifilter as filter, ifilterfalse as filterfalse,
-                           imap as map, izip as zip)
-    range = xrange
-    reduce = reduce
+    from itertools import ifilterfalse as filterfalse
+
 
 # functools.wraps
 if hexversion < 0x030300b1:
@@ -56,5 +48,5 @@ def unstar(func):
     return lambda args: func(*args)
 
 
-compose = star(partial(reduce, lambda f, g: lambda *args, **kwargs: f(g(*args, **kwargs))))
-
+def compose(*funcs):
+    return reduce(lambda f, g: lambda x: f(g(x)), funcs)

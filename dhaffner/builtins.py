@@ -1,15 +1,19 @@
-"""
+'''
 Some helper functions around Python built-in types: "numerics, sequences,
 mappings, files, classes, instances and exceptions."
-Might delete this module later if it seems unnecessary.
-"""
+'''
 
 __all__ = ('dictfilter', 'dictitemgetter', 'dictmap', 'throws')
 
+
 from functools import partial
+from itertools import takewhile
 from operator import attrgetter, itemgetter, methodcaller
 
-from common import map, zip
+from six import iterkeys, itervalues
+from six.moves import map, filter, zip
+
+from dhaffner.common import compose
 
 
 #
@@ -18,11 +22,11 @@ from common import map, zip
 
 
 def dictmap(func, dictionary):
-    return dict(zip(dictionary.iterkeys(), map(func, dictionary.itervalues())))
+    return dict(zip(iterkeys(dictionary), map(func, itervalues(dictionary))))
 
 
 def dictfilter(func, dictionary):
-    return dict((key, value) for (key, value) in dictionary.iteritems() \
+    return dict((key, value) for (key, value) in dictionary.iteritems()
                 if func(value))
 
 
@@ -51,13 +55,40 @@ class composite(tuple):
     def __getattr__(self, name):
 
         def attrs(*args, **kwargs):
-            return self(methodcaller(name, *args, **kwargs))
+            return self.map(methodcaller(name, *args, **kwargs))
 
         return attrs
 
-    def __call__(self, func):
+    def map(self, func):
         return self.__class__(map(func, self))
 
+    def filter(self, func):
+        return self.__class__(filter(func, self))
+
+
+class vector(object):
+    def __init__(self, iterable):
+        self.v = iterable
+
+    def map(self, *funcs):
+        func = compose(*reversed(funcs))
+        self.v = map(func, self.v)
+        return self
+
+    def filter(self, *funcs):
+        self.v = filter(vector.sift(funcs), self.v)
+        return self
+
+    def takewhile(self, *funcs):
+        self.v = takewhile(vector.sift(funcs), self.v)
+        return self
+
+    def __iter__(self):
+        return iter(self.v)
+
+    @staticmethod
+    def sift(funcs):
+        return lambda x: all(func(x) for func in funcs)
 
 #
 #   Exceptions

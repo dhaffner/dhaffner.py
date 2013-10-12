@@ -8,10 +8,12 @@ __all__ = ('compact', 'consume', 'drop', 'exhaust', 'first', 'flatten',
 
 from collections import deque, Sequence
 from functools import partial
-from itertools import islice, chain, tee, repeat
+from itertools import islice, chain, tee
 from operator import mul
 
-from common import compose, filter, filterfalse, zip
+from six.moves import map, filter
+
+from common import compose, filterfalse
 
 
 # Remove false values from sequence.
@@ -113,11 +115,6 @@ class reusable(object):
 split = compose(lambda iterator, next=next: (next(iterator), iterator), iter)
 
 
-def tag(t, iterable, zip=zip, repeat=repeat):
-    """Tag (pair) t with each element in the given sequence"""
-    return zip(repeat(t), iterable)
-
-
 def take(n, iterable, islice=islice):
     """Take the first n elements of the given iterable."""
     return islice(iterable, n)
@@ -130,3 +127,4 @@ def unique(iterable, filterfalse=filterfalse):
     for element in filterfalse(seen.__contains__, iterable):
         add(element)
         yield element
+
