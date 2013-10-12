@@ -91,22 +91,6 @@ class vector(object):
         return lambda x: all(func(x) for func in funcs)
 
 #
-#   Exceptions
-#
-
-
-def throws(thunk, exception):
-    if isinstance(exception, Exception):
-        exception = (exception, )
-    try:
-        thunk()
-    except exception:
-        return True
-    else:
-        return False
-
-
-#
 #   Properties
 #
 

@@ -21,28 +21,32 @@ compact = partial(filter, bool)
 
 
 def consume(iterator, n=None, next=next, islice=islice, deque=deque):
-    """Consume a given amount of elements in from a generator. If no amount is
+    """
+    Consume a given amount of elements in from a generator. If no amount is
     specified, exhaust the entire sequence.
     """
     if n is not None:
         next(islice(iterator, n, n), None)
     else:
-        deque(iterator, maxlen=0)
+        exhaust(iterator)
 
 
 def dotproduct(vec1, vec2, sum=sum, map=map, mul=mul):
-    """Compute and return the dot product of two vectors (sequences)."""
+    """
+    Compute and return the dot product of two vectors (sequences).
+    """
     return sum(map(mul, vec1, vec2))
 
 
 def drop(iterable, n, islice=islice):
-    """Drop the first n elements of the given iterable."""
+    """
+    Drop the first n elements of the given iterable.
+    """
     return islice(iterable, n, None)
 
 
-def exhaust(iterator, deque=deque):
-    """Exhaust a given iterator."""
-    deque(iterator, maxlen=0)
+# Exhaust a given iterator.
+exhaust = deque(maxlen=0).extend
 
 
 # Get first element of a sequence
@@ -54,18 +58,16 @@ flatten = chain.from_iterable
 
 
 def issequence(obj, isinstance=isinstance, Sequence=Sequence):
-    """Determine whether obj is a sequence. Strings are not considered
+    """
+    Determine whether obj is a sequence. Strings are not considered
     sequences.
     """
-
     try:
         obj.strip
     except:
-        pass
+        return isinstance(obj, Sequence)
     else:
         return False
-
-    return isinstance(obj, Sequence)
 
 
 # Get the last element of an iterable.
@@ -73,16 +75,33 @@ last = partial(reduce, lambda _, y: y)
 
 
 def nth(iterable, n, next=next, islice=islice, default=None):
-    """Returns the nth item or a default value
+    """
+    Return the nth item or a default value from an iterable.
 
     http://docs.python.org/3.4/library/itertools.html#itertools-recipes
     """
     return next(islice(iterable, n, None), default)
 
 
+def partition(items, predicate=bool):
+    """
+    Partition a given sequence into two  subsequences: those for which
+    predicate returns True and those for which it returns False.
+
+    Source: http://nedbatchelder.com/blog/201306/filter_a_list_into_two_parts.html
+    """
+
+    a, b = tee((predicate(item), item) for item in items)
+    return ((item for pred, item in a if not pred),
+            (item for pred, item in b if pred))
+
+
+# TODO: better name for this function
 def pick(iterable):
-    """Yield elements of sequence, repeating the last element infinitely after
-    the sequence is iterated over."""
+    """
+    Yield elements of sequence, repeating the last element infinitely after
+    the sequence is iterated over.
+    """
     for element in iterable:
         yield element
     while True:
@@ -97,7 +116,8 @@ class reusable(object):
         return self
 
     def reset(self):
-        """Reset the iterator to the start. Discard any remaining values in the
+        """
+        Reset the iterator to the start. Discard any remaining values in the
         current iteration.
         """
         self.iterator, self.iterable = tee(self.iterable)
@@ -116,12 +136,16 @@ split = compose(lambda iterator, next=next: (next(iterator), iterator), iter)
 
 
 def take(n, iterable, islice=islice):
-    """Take the first n elements of the given iterable."""
+    """
+    Take the first n elements of the given iterable.
+    """
     return islice(iterable, n)
 
 
 def unique(iterable, filterfalse=filterfalse):
-    """Return only unique elements from the sequence."""
+    """
+    Return only unique elements from the sequence.
+    """
     seen = set()
     add = seen.add
     for element in filterfalse(seen.__contains__, iterable):
