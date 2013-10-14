@@ -14,7 +14,7 @@ from random import random
 
 from six.moves import map
 
-from common import PY3
+from dhaffner.common import PY3
 
 if PY3:
     from html.entities import name2codepoint

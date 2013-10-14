@@ -3,17 +3,16 @@
 # Some functions on sequences and iterables.
 
 __all__ = ('compact', 'consume', 'drop', 'exhaust', 'first', 'flatten',
-           'issequence', 'last', 'nth', 'pick', 'reusable', 'split', 'tag',
-           'take', 'unique')
+           'isiterable', 'length', 'last', 'nth', 'pick', 'split', 'take', 'unique')
 
-from collections import deque, Sequence
+from collections import deque, Iterable
 from functools import partial
 from itertools import islice, chain, tee
 from operator import mul
 
 from six.moves import map, filter
 
-from common import compose, filterfalse
+from dhaffner.common import compose, filterfalse
 
 
 # Remove false values from sequence.
@@ -57,21 +56,24 @@ first = compose(next, iter)
 flatten = chain.from_iterable
 
 
-def issequence(obj, isinstance=isinstance, Sequence=Sequence):
+def isiterable(obj, strings=False, isinstance=isinstance, Iterable=Iterable):
     """
-    Determine whether obj is a sequence. Strings are not considered
-    sequences.
+    Determine whether obj is a sequence.
     """
-    try:
-        obj.strip
-    except:
-        return isinstance(obj, Sequence)
-    else:
-        return False
+    return (isinstance(obj, Iterable) and
+            not (isinstance(obj, basestring) and not strings))
+
+
+def length(iterable):
+    return sum(1 for x in iterable)
+
 
 
 # Get the last element of an iterable.
-last = partial(reduce, lambda _, y: y)
+_last_deque = deque(maxlen=1)
+def last(iterable, extend=_last_deque.extend, pop=_last_deque.pop):
+    extend(iterable)
+    return pop()
 
 
 def nth(iterable, n, next=next, islice=islice, default=None):
@@ -106,28 +108,6 @@ def pick(iterable):
         yield element
     while True:
         yield element
-
-
-class reusable(object):
-    def __init__(self, iterable):
-        self.iterable = iterable
-
-    def __iter__(self):
-        return self
-
-    def reset(self):
-        """
-        Reset the iterator to the start. Discard any remaining values in the
-        current iteration.
-        """
-        self.iterator, self.iterable = tee(self.iterable)
-
-    def next(self):
-        try:
-            return next(self.iterator)
-        except StopIteration:
-            self.reset()
-            raise
 
 
 # Return a tuple containing the next element in the sequence,

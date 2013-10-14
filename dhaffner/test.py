@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import functions
-import iterators
+from dhaffner import functions, iterators
 
 import random
 import unittest
@@ -19,16 +18,23 @@ class TestFunctions(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_cache(self):
-        cached = functions.cache(seconds=2)(random.random)
-        v = cached()
-        time.sleep(1)
-
-        self.assertEqual(v, cached())
-
     def test_caller(self):
         caller = functions.caller(['one', 'two'])
         self.assertEqual('onetwo', caller(operator.add))
+
+    def test_atomize(self):
+        pass
+
+    def test_flip(self):
+        f = functions.flip(operator.sub)
+        self.assertEqual(f(2, 1), -1)
+
+    def test_constant(self):
+        f = functions.constant('A')
+        self.assertTrue(f(1) == 'A')
+        self.assertTrue(f() == 'A')
+        self.assertTrue(f([1, 2]) == 'A')
+
 
 
 class TestFunctionsComposable(unittest.TestCase):
@@ -107,14 +113,54 @@ class TestIterators(unittest.TestCase):
         flat_lst = list(iterators.flatten(lst))
         self.assertTrue(len(flat_lst) == 60)
 
-    def test_issequence(self):
-        self.assertTrue(iterators.issequence([]))
-        self.assertTrue(iterators.issequence([1, 2, 3]))
-        self.assertTrue(iterators.issequence(x for x in [1, 2]))
-        self.assertFalse(iterators.issequence(1))
-        self.assertFalse(iterators.issequence('string'))
+    def test_isiterable(self):
+        self.assertTrue(iterators.isiterable([]))
+        self.assertTrue(iterators.isiterable([1, 2, 3]))
+        self.assertTrue(iterators.isiterable(x for x in [1, 2]))
+        self.assertFalse(iterators.isiterable(1))
+        self.assertFalse(iterators.isiterable('string', strings=False))
+        self.assertTrue(iterators.isiterable('string', strings=True))
 
+    def test_length(self):
+        self.assertTrue(iterators.length(xrange(100)) == 100)
+        self.assertTrue(iterators.length(['a', 'b', 'c']) == 3)
+        self.assertTrue(iterators.length([]) == 0)
 
+    def test_last(self):
+        lst = [10, 20, 30]
+        self.assertTrue(iterators.last(lst) == 30)
+
+    def test_nth(self):
+        lst = [10, 20, 30]
+        self.assertTrue(iterators.nth(lst, 1) == 20)
+        self.assertTrue(iterators.nth(lst, 10) == None)
+        self.assertTrue(iterators.nth(lst, 10, default=100) == 100)
+
+    def test_partition(self):
+        pred = lambda x: x % 2 == 0
+        lst = xrange(1000)
+        fit, tit = iterators.partition(lst, pred)
+        D = [next(fit) - next(tit)] * 500
+        self.assertTrue(D.count(1) == 500)
+
+    def test_pick(self):
+        it = iterators.pick(xrange(10))
+        iterators.consume(it, 10)
+        picks = [next(it)] * 10
+        self.assertTrue(picks.count(9) == 10)
+
+    def test_split(self):
+        head, tail = iterators.split(xrange(10))
+        self.assertTrue(head == 0)
+        self.assertTrue(iterators.isiterable(tail))
+
+    def test_take(self):
+        lst = iterators.take(10, xrange(100))
+        self.assertTrue(iterators.last(lst) == 9)
+
+    def test_unique(self):
+        it = iterators.unique([10, 20, 30, 40, 50] * 3)
+        self.assertTrue(iterators.length(it) == 5)
 
 
 if __name__ == '__main__':

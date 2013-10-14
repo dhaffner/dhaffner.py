@@ -12,12 +12,11 @@ from functools import partial
 from inspect import getargspec
 from sys import hexversion
 from threading import RLock
-from time import time
 
 from six.moves import map, reduce
 
-from .iterators import compact, first, last, issequence, take
-from .common import compose, wraps, unstar
+from dhaffner.iterators import compact, first, last, isiterable, take
+from dhaffner.common import compose, wraps, unstar
 
 
 def atomize(func, lock=None):
@@ -287,6 +286,6 @@ def vectorize(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         value = func(*args, **kwargs)
-        return value if issequence(value) else [value]
+        return value if isiterable(value) else [value]
 
     return wrapped
