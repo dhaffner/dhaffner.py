@@ -2,8 +2,8 @@
 ''':class:`functions` Some high-order functions and decorators.'''
 
 __all__ = ('atomize', 'caller', 'composable', 'compose', 'constant',
-           'context', 'curry', 'flip', 'identity', 'iterate', 'memoize',
-           'merge', 'nargs', 'pipe', 'scan', 'vectorize', 'wraps')
+           'context', 'curry', 'flip', 'identity', 'iterate', 'merge',
+           'nargs', 'pipe', 'scan', 'vectorize', 'wraps')
 
 import operator
 
@@ -217,34 +217,6 @@ def iterate(func, x):
         yield x
 
 
-# memoize is made obsolete as of Python 3.2 by functools.lru_cache.
-if hexversion >= 0x03020000:
-    from functools import lru_cache
-    memoize = lru_cache(maxsize=None)
-
-else:
-    def memoize(func):
-        """Memoization decorator. Caches a function's return value each time
-        it is called. Return the cached value when it is called again with the
-        same arguments. Does not support keyword arguments (yet).
-        """
-        cache = {}
-
-        @wraps(func)
-        def wrapped(*args):
-            try:
-                return cache[args]
-            except KeyError:
-                value = func(*args)
-                cache[args] = value
-                return value
-            except TypeError:
-                # uncachable.
-                return func(*args)
-
-        return wrapped
-
-
 def merge(func, *funcs):
     """Return a function whose positional arguments are determined by
     evaluating each function in funcs with the given *args, and **kwargs. If
@@ -275,6 +247,7 @@ def scan(func, sequence, init=None):
     else:
         curr = init
         yield init
+
     for element in sequence:
         curr = func(curr, element)
         yield curr

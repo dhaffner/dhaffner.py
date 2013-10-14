@@ -132,3 +132,12 @@ def unique(iterable, filterfalse=filterfalse):
         add(element)
         yield element
 
+
+def where(dicts, **kwargs):
+    def sift(d):
+        for (k, v) in kwargs.iteritems():
+            if d.get(k) != v:
+                return False
+        return True
+
+    return filter(sift, dicts)
