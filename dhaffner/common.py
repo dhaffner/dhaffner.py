@@ -40,10 +40,6 @@ else:
     wraps = wraps
 
 
-def star(func):
-    return lambda *args: func(args)
-
-
 def unstar(func):
     return lambda args: func(*args)
 
