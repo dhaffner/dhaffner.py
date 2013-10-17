@@ -37,5 +37,18 @@ class TestMisc(unittest.TestCase):
         self.assertTrue(lst.count('B') == 0)
 
     def test_noop(self):
-        pass
+        self.assertEqual(misc.noop(), None)
+        self.assertEqual(misc.noop(1), None)
+        self.assertEqual(misc.noop(2, blah=1), None)
 
+    def test_splitlines(self):
+        s = \
+        """a
+        b
+        c
+        d
+        e"""
+
+        lines = misc.splitlines(s)
+        self.assertTrue(iterators.isiterable(lines))
+        self.assertTrue(iterators.length(lines) == 5)
