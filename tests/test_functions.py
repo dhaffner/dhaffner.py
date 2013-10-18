@@ -63,7 +63,6 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(lst1, [0, 1, 3, 6])
         self.assertEqual(lst2, [2, 4, 7])
 
-
     def test_vectorize(self):
         f = functions.vectorize(lambda a: a)
 
@@ -95,6 +94,7 @@ class TestFunctionsComposable(unittest.TestCase):
 
             for n in xrange(start, start + 100):
                 self.assertEqual(h(n), op(f(n), g(n)))
+
 
 if __name__ == '__main__':
     unittest.main()
