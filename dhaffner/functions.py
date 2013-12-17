@@ -3,12 +3,12 @@
 
 __all__ = ('atomize', 'caller', 'composable', 'compose', 'constant',
            'context', 'curry', 'flip', 'identity', 'iterate', 'merge',
-           'nargs', 'pipe', 'scan', 'vectorize', 'wraps')
+           'nargs', 'pipe', 'scan', 'vectorize')
 
 import operator
 
 from contextlib import contextmanager
-from functools import partial
+from functools import partial, wraps
 from inspect import getargspec
 from sys import hexversion
 from threading import RLock
@@ -16,7 +16,7 @@ from threading import RLock
 from six.moves import map, reduce
 
 from dhaffner.iterators import compact, first, last, isiterable, take
-from dhaffner.common import compose, wraps, unstar
+from dhaffner.common import compose, unstar
 
 
 def atomize(func, lock=None):
@@ -195,7 +195,6 @@ def curry(func, n=None):
     if n is None:
         n = nargs(func)
 
-    @wraps(func)
     def curried(*args, **kwargs):
         if len(args) >= n:
             return func(*args, **kwargs)
@@ -233,7 +232,6 @@ def pipe(func):
     input. Useful for wrapping functions which do not return a useful input,
     such as print.
     """
-    @wraps(func)
     def wrapped(x):
         func(x)
         return x

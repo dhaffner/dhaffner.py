@@ -90,6 +90,7 @@ class vector(object):
     def sift(funcs):
         return lambda x: all(func(x) for func in funcs)
 
+
 #
 #   Properties
 #
