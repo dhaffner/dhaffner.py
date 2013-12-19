@@ -7,6 +7,21 @@ import unittest
 import time
 import operator
 
+class TestAtomize(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_atomize(self):
+        @functions.atomize
+        def f():
+            time.sleep(1.1)
+            return time.time()
+
+        a, b = f(), f()
+        self.assertLess(1.0, b - a)
+
+
 class TestFunctions(unittest.TestCase):
 
     def setUp(self):
@@ -47,8 +62,8 @@ class TestFunctions(unittest.TestCase):
 
     def test_iterate(self):
         f = functions.iterate(lambda x: x ** 2, 2)
+        self.assertEqual(next(f), 2)
         self.assertEqual(next(f), 4)
-        self.assertEqual(next(f), 16)
 
     def test_pipe(self):
         lst = [3, 2, 1]
@@ -75,8 +90,9 @@ class TestFunctions(unittest.TestCase):
 
 class TestFunctionsComposable(unittest.TestCase):
     def setUp(self):
-        self.ops = ['add', 'sub', 'mul', 'floordiv', 'mod', 'and_', 'xor', 'or_',
-               'div', 'truediv']
+        self.ops = \
+            ['add', 'sub', 'mul', 'floordiv', 'mod', 'and_', 'xor', 'or_',
+             'div', 'truediv', 'lt', 'gt', 'le', 'eq', 'ne', 'ge', 'gt']
 
     def test_ops(self):
         ops = operator.attrgetter(*self.ops)(operator)
@@ -94,6 +110,19 @@ class TestFunctionsComposable(unittest.TestCase):
 
             for n in xrange(start, start + 100):
                 self.assertEqual(h(n), op(f(n), g(n)))
+
+    def test_compose(self):
+        f = functions.composable(lambda x: x ** 3)
+        h = f.compose(lambda  x: x + 2)
+        self.assertEqual(h(2), 64)
+
+    def test_iterate(self):
+        def func(x):
+            return x * 2
+
+        f = functions.composable(func)
+        self.assertEqual((f ** 2)(1), 4)
+        self.assertEqual((f ** 3)(1), 8)
 
 
 if __name__ == '__main__':

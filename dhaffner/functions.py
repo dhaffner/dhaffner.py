@@ -62,6 +62,7 @@ class composable(object):
         return self.func(*args, **kwargs)
 
     def compose(self, *funcs):
+        funcs = (self.func, ) + funcs
         return self.__class__(compose(*funcs))
 
     def merge(self, func, other):
@@ -119,7 +120,7 @@ class composable(object):
 
     # iterate
     def __pow__(self, n):
-        return self.compose(last, partial(take, n), iterate(self))
+        return self.compose(last, partial(take, n), partial(iterate, self.func))
 
     def __neg__(self, neg=operator.neg):
         return self.compose(neg, self)
@@ -212,8 +213,9 @@ def iterate(func, x):
     """Return a generator that will repeatedly call a function with a given
     initial input, feeding the resulting value back into said function."""
     while True:
-        x = func(x)
         yield x
+        x = func(x)
+
 
 
 def merge(func, *funcs):

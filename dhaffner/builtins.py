@@ -47,51 +47,6 @@ dictitemgetter = dictgetter(itemgetter)
 
 
 #
-#   Tuples
-#
-
-
-class composite(tuple):
-    def __getattr__(self, name):
-
-        def attrs(*args, **kwargs):
-            return self.map(methodcaller(name, *args, **kwargs))
-
-        return attrs
-
-    def map(self, func):
-        return self.__class__(map(func, self))
-
-    def filter(self, func):
-        return self.__class__(filter(func, self))
-
-
-class vector(object):
-    def __init__(self, iterable):
-        self.v = iterable
-
-    def map(self, *funcs):
-        func = compose(*reversed(funcs))
-        self.v = map(func, self.v)
-        return self
-
-    def filter(self, *funcs):
-        self.v = filter(vector.sift(funcs), self.v)
-        return self
-
-    def takewhile(self, *funcs):
-        self.v = takewhile(vector.sift(funcs), self.v)
-        return self
-
-    def __iter__(self):
-        return iter(self.v)
-
-    @staticmethod
-    def sift(funcs):
-        return lambda x: all(func(x) for func in funcs)
-
-
-#
 #   Properties
 #
 
