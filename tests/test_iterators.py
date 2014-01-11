@@ -104,6 +104,7 @@ class TestIterators(unittest.TestCase):
     def test_take(self):
         lst = iterators.take(10, xrange(100))
         self.assertTrue(iterators.last(lst) == 9)
+        self.assertEqual(iterators.last([1]), 1)
 
     def test_unique(self):
         it = iterators.unique([10, 20, 30, 40, 50] * 3)

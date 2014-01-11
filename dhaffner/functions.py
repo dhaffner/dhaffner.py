@@ -3,12 +3,12 @@
 
 __all__ = ('atomize', 'caller', 'composable', 'compose', 'constant',
            'context', 'curry', 'flip', 'identity', 'iterate', 'merge',
-           'nargs', 'pipe', 'scan', 'vectorize', 'wraps')
+           'nargs', 'pipe', 'scan', 'vectorize')
 
 import operator
 
 from contextlib import contextmanager
-from functools import partial
+from functools import partial, wraps
 from inspect import getargspec
 from sys import hexversion
 from threading import RLock
@@ -16,7 +16,7 @@ from threading import RLock
 from six.moves import map, reduce
 
 from dhaffner.iterators import compact, first, last, isiterable, take
-from dhaffner.common import compose, wraps, unstar
+from dhaffner.common import compose, unstar
 
 
 def atomize(func, lock=None):
@@ -62,6 +62,7 @@ class composable(object):
         return self.func(*args, **kwargs)
 
     def compose(self, *funcs):
+        funcs = (self.func, ) + funcs
         return self.__class__(compose(*funcs))
 
     def merge(self, func, other):
@@ -119,7 +120,7 @@ class composable(object):
 
     # iterate
     def __pow__(self, n):
-        return self.compose(last, partial(take, n), iterate(self))
+        return self.compose(last, partial(take, n), partial(iterate, self.func))
 
     def __neg__(self, neg=operator.neg):
         return self.compose(neg, self)
@@ -195,7 +196,6 @@ def curry(func, n=None):
     if n is None:
         n = nargs(func)
 
-    @wraps(func)
     def curried(*args, **kwargs):
         if len(args) >= n:
             return func(*args, **kwargs)
@@ -213,8 +213,9 @@ def iterate(func, x):
     """Return a generator that will repeatedly call a function with a given
     initial input, feeding the resulting value back into said function."""
     while True:
-        x = func(x)
         yield x
+        x = func(x)
+
 
 
 def merge(func, *funcs):
@@ -233,7 +234,6 @@ def pipe(func):
     input. Useful for wrapping functions which do not return a useful input,
     such as print.
     """
-    @wraps(func)
     def wrapped(x):
         func(x)
         return x
