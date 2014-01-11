@@ -10,7 +10,7 @@ from functools import partial
 from itertools import takewhile
 from operator import attrgetter, itemgetter, methodcaller
 
-from six import iterkeys, itervalues
+from six import iterkeys, itervalues, iteritems
 from six.moves import map, filter, zip
 
 from dhaffner.common import compose
@@ -21,13 +21,12 @@ from dhaffner.common import compose
 #
 
 
-def dictmap(func, dictionary):
-    return dict(zip(iterkeys(dictionary), map(func, itervalues(dictionary))))
+def dictmap(func, d):
+    return dict(map(func, iteritems(d)))
 
 
-def dictfilter(func, dictionary):
-    return dict((key, value) for (key, value) in dictionary.iteritems()
-                if func(value))
+def dictfilter(func, d):
+    return dict(filter(func, iteritems(d)))
 
 
 def dictgetter(getterfunc):  # Not included in __all__
@@ -89,6 +88,7 @@ class vector(object):
     @staticmethod
     def sift(funcs):
         return lambda x: all(func(x) for func in funcs)
+
 
 #
 #   Properties

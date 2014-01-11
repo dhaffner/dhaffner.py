@@ -110,6 +110,9 @@ def pick(iterable):
         yield element
 
 
+# TODO: powerset
+
+
 # Return a tuple containing the next element in the sequence,
 # and an iterable containing the rest of the sequence.
 split = compose(lambda iterator, next=next: (next(iterator), iterator), iter)
