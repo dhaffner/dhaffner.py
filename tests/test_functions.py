@@ -62,8 +62,8 @@ class TestFunctions(unittest.TestCase):
 
     def test_iterate(self):
         f = functions.iterate(lambda x: x ** 2, 2)
-        self.assertEqual(next(f), 2)
         self.assertEqual(next(f), 4)
+        self.assertEqual(next(f), 16)
 
     def test_pipe(self):
         lst = [3, 2, 1]
@@ -94,6 +94,8 @@ class TestFunctionsComposable(unittest.TestCase):
             ['add', 'sub', 'mul', 'floordiv', 'mod', 'and_', 'xor', 'or_',
              'div', 'truediv', 'lt', 'gt', 'le', 'eq', 'ne', 'ge', 'gt']
 
+        self.unary_ops = ['neg', 'pos', 'abs', 'invert']
+
     def test_ops(self):
         ops = operator.attrgetter(*self.ops)(operator)
         f = lambda x: x ** 2
@@ -111,10 +113,21 @@ class TestFunctionsComposable(unittest.TestCase):
             for n in xrange(start, start + 100):
                 self.assertEqual(h(n), op(f(n), g(n)))
 
+        unary_ops = operator.attrgetter(*self.unary_ops)(operator)
+        for op in unary_ops:
+            h = op(f)
+            n = random.randint(100, 1000)
+            print op, h, h(n), f(n), op(f(n))
+            self.assertEqual(op(f(n)), h(n))
+
+
     def test_compose(self):
         f = functions.composable(lambda x: x ** 3)
-        h = f.compose(lambda  x: x + 2)
-        self.assertEqual(h(2), 64)
+        h1 = f << (lambda  x: x + 2)
+        self.assertEqual(h1(2), 64)
+
+        h2 = f >> (lambda  x: x + 10)
+        self.assertEqual(h2(4), 74)
 
     def test_iterate(self):
         def func(x):
@@ -123,6 +136,12 @@ class TestFunctionsComposable(unittest.TestCase):
         f = functions.composable(func)
         self.assertEqual((f ** 2)(1), 4)
         self.assertEqual((f ** 3)(1), 8)
+
+    def test_repr(self):
+        def func(x):
+            return x + 100
+        f = functions.composable(func)
+        self.assertEqual(repr(f), repr(func))
 
 
 if __name__ == '__main__':

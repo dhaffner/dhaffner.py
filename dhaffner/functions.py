@@ -2,7 +2,7 @@
 ''':class:`functions` Some high-order functions and decorators.'''
 
 __all__ = ('atomize', 'caller', 'composable', 'compose', 'constant',
-           'context', 'curry', 'flip', 'identity', 'iterate', 'merge',
+           'context', 'curry', 'flip', 'identity', 'iterate', 'juxt',
            'nargs', 'pipe', 'scan', 'vectorize')
 
 import operator
@@ -45,6 +45,16 @@ def caller(args, kwargs=None):
     return lambda func: func(*args, **(kwargs or {}))
 
 
+def compose2(*funcs):
+
+    def apply(func, args):
+        if not isiterable(args):
+            args = [args]
+        return func(*args)
+
+    return reduce(lambda f, g: lambda x: apply(f, g(x)), funcs)
+
+
 def flip(func):
     """Decorate the given function to reverse the order of its arguments."""
     @wraps(func)
@@ -61,106 +71,87 @@ class composable(object):
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-    def compose(self, *funcs):
-        funcs = (self.func, ) + funcs
+    def wrap(self, *funcs):
+        funcs = funcs + (self.func, )
         return self.__class__(compose(*funcs))
 
-    def merge(self, func, other):
-        return self.__class__(merge(func, self, other))
+    def juxt(self, func, other):
+        return self.__class__(compose2(func, juxt(self.func, other)))
 
     def __add__(self, other, add=operator.add):
-        return self.merge(add, other)
+        return self.juxt(add, other)
 
     def __sub__(self, other, sub=operator.sub):
-        return self.merge(sub, other)
+        return self.juxt(sub, other)
 
     def __mul__(self, other, mul=operator.mul):
-        return self.merge(mul, other)
+        return self.juxt(mul, other)
 
     def __floordiv__(self, other, floordiv=operator.floordiv):
-        return self.merge(floordiv, other)
+        return self.juxt(floordiv, other)
 
     __divmod__ = __floordiv__
 
     def __mod__(self, other, mod=operator.mod):
-        return self.merge(mod, other)
+        return self.juxt(mod, other)
 
     def __and__(self, other, and_=operator.and_):
-        return self.merge(and_, other)
+        return self.juxt(and_, other)
 
     def __xor__(self, other, xor=operator.xor):
-        return self.merge(xor, other)
+        return self.juxt(xor, other)
 
     def __or__(self, other, or_=operator.or_):
-        return self.merge(or_, other)
+        return self.juxt(or_, other)
 
     def __div__(self, other, div=operator.div):
-        return self.merge(div, other)
+        return self.juxt(div, other)
 
     def __truediv__(self, other, truediv=operator.truediv):
-        return self.merge(truediv, other)
+        return self.juxt(truediv, other)
 
     def __lt__(self, other, lt=operator.lt):
-        return self.merge(lt, other)
+        return self.juxt(lt, other)
 
     def __le__(self, other, le=operator.le):
-        return self.merge(le, other)
+        return self.juxt(le, other)
 
     def __eq__(self, other, eq=operator.eq):
-        return self.merge(eq, other)
+        return self.juxt(eq, other)
 
     def __ne__(self, other, ne=operator.ne):
-        return self.merge(ne, other)
+        return self.juxt(ne, other)
 
     def __ge__(self, other, ge=operator.ge):
-        return self.merge(ge, other)
+        return self.juxt(ge, other)
 
     def __gt__(self, other, gt=operator.gt):
-        return self.merge(gt, other)
+        return self.juxt(gt, other)
 
     # iterate
     def __pow__(self, n):
-        return self.compose(last, partial(take, n), partial(iterate, self.func))
+        func = compose(last, partial(take, n), partial(iterate, self.func))
+        return self.__class__(func)
 
     def __neg__(self, neg=operator.neg):
-        return self.compose(neg, self)
+        return self.wrap(neg)
 
     def __pos__(self, pos=operator.pos):
-        return self.compose(pos, self)
+        return self.wrap(pos)
 
     def __abs__(self, abs=operator.abs):
-        return self.compose(abs, self)
+        return self.wrap(abs)
 
     def __invert__(self, invert=operator.invert):
-        return self.compose(invert, self)
+        return self.wrap(invert)
 
     __inv__ = __invert__
 
-    # compose
     def __lshift__(self, other):
-        return self.compose(self, other)
+        return self.__class__(compose(self.func, other))
 
-    # __rshift__ = flip(__lshift__)
-
-    # __radd__ = flip(__add__)
-
-    # __rsub__ = flip(__sub__)
-
-    # __rmul__ = flip(__mul__)
-
-    # __rdiv__ = flip(__div__)
-
-    # __rtruediv__ = flip(__truediv__)
-
-    # __rfloordiv__ = flip(__floordiv__)
-
-    # __rmod__ = flip(__mod__)
-
-    # __rdivmod__ = flip(__divmod__)
-
-    # __rlshift__ = flip(__lshift__)
-
-    # __rrshift__ = flip(__rshift__)
+    def __rshift__(self, other):
+        return self.wrap(other)
 
     def __str__(self):
         return str(self.func)
@@ -213,20 +204,20 @@ def iterate(func, x):
     """Return a generator that will repeatedly call a function with a given
     initial input, feeding the resulting value back into said function."""
     while True:
-        yield x
         x = func(x)
+        yield x
 
 
-
-def merge(func, *funcs):
+def juxt(*funcs):
     """Return a function whose positional arguments are determined by
     evaluating each function in funcs with the given *args, and **kwargs. If
     funcs = [f1, f2, ...], this is equivalent to:
 
     return lambda *a, **k: func(f1(*a, **k), f2(*a, **k), ...)
     """
-    call = lambda *args, **kwargs: map(caller(args, kwargs), funcs)
-    return compose(unstar(func), call)
+    def inner(*args, **kwargs):
+        return (f(*args, **kwargs) for f in funcs)
+    return inner
 
 
 def pipe(func):
