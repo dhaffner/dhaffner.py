@@ -2,21 +2,20 @@
 ''':class:`functions` Some high-order functions and decorators.'''
 
 __all__ = ('atomize', 'caller', 'composable', 'compose', 'constant',
-           'context', 'curry', 'flip', 'identity', 'iterate', 'juxt',
-           'nargs', 'pipe', 'scan', 'vectorize')
+           'context', 'curry', 'flip', 'identity', 'juxt', 'nargs', 'pipe',
+           'scan', 'vectorize')
 
 import operator
 
 from contextlib import contextmanager
 from functools import partial, wraps
 from inspect import getargspec
-from sys import hexversion
 from threading import RLock
 
 from six.moves import map, reduce
 
-from dhaffner.iterators import compact, first, last, isiterable, take
-from dhaffner.common import compose, unstar
+from dhaffner.iterators import compact, first, last, isiterable, iterate, take
+from dhaffner.common import compose
 
 
 def atomize(func, lock=None):
@@ -64,7 +63,7 @@ def flip(func):
     return flipped
 
 
-class composable(object):
+class composable(object):  # noqa
     def __init__(self, func=lambda x: x, *args, **kwargs):
         self.func = partial(func, *args, **kwargs) if (args or kwargs) else func
 
@@ -198,14 +197,6 @@ def curry(func, n=None):
 def identity(x):
     """Identity function; return the input unchanged."""
     return x
-
-
-def iterate(func, x):
-    """Return a generator that will repeatedly call a function with a given
-    initial input, feeding the resulting value back into said function."""
-    while True:
-        x = func(x)
-        yield x
 
 
 def juxt(*funcs):

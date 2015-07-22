@@ -3,7 +3,8 @@
 # Some functions on sequences and iterables.
 
 __all__ = ('compact', 'consume', 'drop', 'exhaust', 'first', 'flatten',
-           'isiterable', 'length', 'last', 'nth', 'pick', 'split', 'take', 'unique')
+           'isiterable', 'iterate', 'length', 'last', 'nth', 'pick', 'split',
+           'take', 'unique')
 
 from collections import deque, Iterable
 from functools import partial
@@ -64,14 +65,23 @@ def isiterable(obj, strings=False, isinstance=isinstance, Iterable=Iterable):
             not (isinstance(obj, basestring) and not strings))
 
 
+def iterate(func, x):
+    """Return a generator that will repeatedly call a function with a given
+    initial input, feeding the resulting value back into said function."""
+    while True:
+        x = func(x)
+        yield x
+
+
 def length(iterable):
     return sum(1 for x in iterable)
 
 
-
-# Get the last element of an iterable.
 _last_deque = deque(maxlen=1)
+
+
 def last(iterable, extend=_last_deque.extend, pop=_last_deque.pop):
+    '''Get the last element of an iterable.'''
     extend(iterable)
     return pop()
 

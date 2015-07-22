@@ -60,11 +60,6 @@ class TestFunctions(unittest.TestCase):
     def test_identity(self):
         self.assertTrue(functions.identity(1) == 1)
 
-    def test_iterate(self):
-        f = functions.iterate(lambda x: x ** 2, 2)
-        self.assertEqual(next(f), 4)
-        self.assertEqual(next(f), 16)
-
     def test_pipe(self):
         lst = [3, 2, 1]
         f = functions.pipe(list.sort)

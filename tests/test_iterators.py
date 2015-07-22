@@ -68,6 +68,11 @@ class TestIterators(unittest.TestCase):
         self.assertFalse(iterators.isiterable('string', strings=False))
         self.assertTrue(iterators.isiterable('string', strings=True))
 
+    def test_iterate(self):
+        f = iterators.iterate(lambda x: x ** 2, 2)
+        self.assertEqual(next(f), 4)
+        self.assertEqual(next(f), 16)
+
     def test_length(self):
         self.assertTrue(iterators.length(xrange(100)) == 100)
         self.assertTrue(iterators.length(['a', 'b', 'c']) == 3)
