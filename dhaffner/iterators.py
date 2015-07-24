@@ -73,7 +73,7 @@ def iterate(func, x):
         yield x
 
 
-def length(iterable):
+def ilen(iterable):
     return sum(1 for x in iterable)
 
 

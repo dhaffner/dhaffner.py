@@ -51,4 +51,4 @@ class TestMisc(unittest.TestCase):
 
         lines = misc.splitlines(s)
         self.assertTrue(iterators.isiterable(lines))
-        self.assertTrue(iterators.length(lines) == 5)
+        self.assertTrue(iterators.ilen(lines) == 5)

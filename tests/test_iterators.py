@@ -60,6 +60,11 @@ class TestIterators(unittest.TestCase):
         flat_lst = list(iterators.flatten(lst))
         self.assertTrue(len(flat_lst) == 60)
 
+    def test_ilen(self):
+        self.assertTrue(iterators.ilen(xrange(100)) == 100)
+        self.assertTrue(iterators.ilen(['a', 'b', 'c']) == 3)
+        self.assertTrue(iterators.ilen([]) == 0)
+
     def test_isiterable(self):
         self.assertTrue(iterators.isiterable([]))
         self.assertTrue(iterators.isiterable([1, 2, 3]))
@@ -72,11 +77,6 @@ class TestIterators(unittest.TestCase):
         f = iterators.iterate(lambda x: x ** 2, 2)
         self.assertEqual(next(f), 4)
         self.assertEqual(next(f), 16)
-
-    def test_length(self):
-        self.assertTrue(iterators.length(xrange(100)) == 100)
-        self.assertTrue(iterators.length(['a', 'b', 'c']) == 3)
-        self.assertTrue(iterators.length([]) == 0)
 
     def test_last(self):
         lst = [10, 20, 30]
@@ -113,17 +113,17 @@ class TestIterators(unittest.TestCase):
 
     def test_unique(self):
         it = iterators.unique([10, 20, 30, 40, 50] * 3)
-        self.assertTrue(iterators.length(it) == 5)
+        self.assertTrue(iterators.ilen(it) == 5)
 
     def test_where(self):
         d1 = {'a': 1, 'b': 2, 'c': 3, 'd': 33}
         d2 = {'a': 10, 'b': 2, 'c': 3, 'd': 8}
 
         w1 = iterators.where([d1, d2], a=10)
-        self.assertEqual(iterators.length(w1), 1)
+        self.assertEqual(iterators.ilen(w1), 1)
 
         w2 = iterators.where([d1, d2], b=2, c=3)
-        self.assertEqual(iterators.length(w2), 2)
+        self.assertEqual(iterators.ilen(w2), 2)
 
 
 if __name__ == '__main__':
