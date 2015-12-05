@@ -1,9 +1,23 @@
 # -*- coding: utf-8 -*-
 ''':class:`functions` Some high-order functions and decorators.'''
 
-__all__ = ('atomize', 'caller', 'composable', 'compose', 'constant',
-           'context', 'curry', 'flip', 'identity', 'juxt', 'nargs', 'pipe',
-           'scan', 'vectorize')
+__all__ = (
+    'atomize',
+    'caller',
+    'composable',
+    'compose',
+    'constant',
+    'context',
+    'curry',
+    'flip',
+    'identity',
+    'juxt',
+    'lift',
+    'nargs',
+    'tap',
+    'scan',
+    'vectorize'
+)
 
 import operator
 
@@ -25,7 +39,6 @@ def atomize(func, lock=None):
     :argument func: the function to decorate
     :argument lock: the lock to use (optional)
     """
-
     if lock is None:
         lock = RLock()
 
@@ -44,16 +57,6 @@ def caller(args, kwargs=None):
     return lambda func: func(*args, **(kwargs or {}))
 
 
-def compose2(*funcs):
-
-    def apply(func, args):
-        if not isiterable(args):
-            args = [args]
-        return func(*args)
-
-    return reduce(lambda f, g: lambda x: apply(f, g(x)), funcs)
-
-
 def flip(func):
     """Decorate the given function to reverse the order of its arguments."""
     @wraps(func)
@@ -64,99 +67,114 @@ def flip(func):
 
 
 class composable(object):  # noqa
-    def __init__(self, func=lambda x: x, *args, **kwargs):
-        self.func = partial(func, *args, **kwargs) if (args or kwargs) else func
+    funcs = {}
+
+    def __init__(self, func):
+        self.func = func
+        try:
+            self.funcs[func.__name__] = func
+        except AttributeError:
+            pass
+
+    def __getattr__(self, attr):
+        if attr in self.funcs:
+            return compose(self.func, self.funcs[attr])
+        raise AttributeError
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-    def wrap(self, *funcs):
-        funcs = funcs + (self.func, )
-        return self.__class__(compose(*funcs))
-
-    def juxt(self, func, other):
-        return self.__class__(compose2(func, juxt(self.func, other)))
-
     def __add__(self, other, add=operator.add):
-        return self.juxt(add, other)
+        return composable.juxt(add, self.func, other)
 
     def __sub__(self, other, sub=operator.sub):
-        return self.juxt(sub, other)
+        return composable.juxt(sub, self.func, other)
 
     def __mul__(self, other, mul=operator.mul):
-        return self.juxt(mul, other)
+        return composable.juxt(mul, self.func, other)
 
     def __floordiv__(self, other, floordiv=operator.floordiv):
-        return self.juxt(floordiv, other)
+        return composable.juxt(floordiv, self.func, other)
 
     __divmod__ = __floordiv__
 
     def __mod__(self, other, mod=operator.mod):
-        return self.juxt(mod, other)
+        return composable.juxt(mod, self.func, other)
 
     def __and__(self, other, and_=operator.and_):
-        return self.juxt(and_, other)
+        return composable.juxt(and_, self.func, other)
 
     def __xor__(self, other, xor=operator.xor):
-        return self.juxt(xor, other)
+        return composable.juxt(xor, self.func, other)
 
     def __or__(self, other, or_=operator.or_):
-        return self.juxt(or_, other)
+        return composable.juxt(or_, self.func, other)
 
     def __div__(self, other, div=operator.div):
-        return self.juxt(div, other)
+        return composable.juxt(div, self.func, other)
 
     def __truediv__(self, other, truediv=operator.truediv):
-        return self.juxt(truediv, other)
+        return composable.juxt(truediv, self.func, other)
 
     def __lt__(self, other, lt=operator.lt):
-        return self.juxt(lt, other)
+        return composable.juxt(lt, self.func, other)
 
     def __le__(self, other, le=operator.le):
-        return self.juxt(le, other)
+        return composable.juxt(le, self.func, other)
 
     def __eq__(self, other, eq=operator.eq):
-        return self.juxt(eq, other)
+        return composable.juxt(eq, self.func, other)
 
     def __ne__(self, other, ne=operator.ne):
-        return self.juxt(ne, other)
+        return composable.juxt(ne, self.func, other)
 
     def __ge__(self, other, ge=operator.ge):
-        return self.juxt(ge, other)
+        return composable.juxt(ge, self.func, other)
 
     def __gt__(self, other, gt=operator.gt):
-        return self.juxt(gt, other)
+        return composable.juxt(gt, self.func, other)
 
     # iterate
     def __pow__(self, n):
-        func = compose(last, partial(take, n), partial(iterate, self.func))
-        return self.__class__(func)
+        return composable.compose(
+            last, partial(take, n), partial(iterate, self.func)
+        )
 
     def __neg__(self, neg=operator.neg):
-        return self.wrap(neg)
+        return composable.compose(neg, self.func)
 
     def __pos__(self, pos=operator.pos):
-        return self.wrap(pos)
+        return composable.compose(pos, self.func)
 
     def __abs__(self, abs=operator.abs):
-        return self.wrap(abs)
+        return composable.compose(abs, self.func)
 
     def __invert__(self, invert=operator.invert):
-        return self.wrap(invert)
+        return composable.compose(invert, self.func)
 
     __inv__ = __invert__
 
     def __lshift__(self, other):
-        return self.__class__(compose(self.func, other))
+        return composable.compose(self.func, other)
 
     def __rshift__(self, other):
-        return self.wrap(other)
+        return composable.compose(other, self.func)
 
     def __str__(self):
-        return str(self.func)
+        return '{}({})'.format(self.__class__, str(self.func))
 
     def __repr__(self):
         return repr(self.func)
+
+    #
+
+    @classmethod
+    def compose(cls, *funcs):
+        return cls(compose(*funcs))
+
+    @classmethod
+    def juxt(cls, func, *funcs):
+        return cls(compose(lift(func), juxt(*funcs)))
 
 
 def constant(x):
@@ -171,11 +189,13 @@ def context(func, *args, **kwargs):
 
 
 # Return the number of position arguments in the given function.
-nargs = compose(partial(reduce, operator.sub),
-                partial(map, len),
-                compact,
-                operator.attrgetter('args', 'defaults'),
-                getargspec)
+nargs = compose(
+    partial(reduce, operator.sub),
+    partial(map, len),
+    compact,
+    operator.attrgetter('args', 'defaults'),
+    getargspec
+)
 
 
 def curry(func, n=None):
@@ -186,6 +206,7 @@ def curry(func, n=None):
     if n is None:
         n = nargs(func)
 
+    @wraps(func)
     def curried(*args, **kwargs):
         if len(args) >= n:
             return func(*args, **kwargs)
@@ -208,10 +229,22 @@ def juxt(*funcs):
     """
     def inner(*args, **kwargs):
         return (f(*args, **kwargs) for f in funcs)
+
     return inner
 
 
-def pipe(func):
+def lift(func):
+    """Decorate a function to accept a list of args instead of position arguments.
+    Like a curried apply.
+    """
+    @wraps(func)
+    def lifted(args):
+        return func(*args)
+
+    return lifted
+
+
+def tap(func):
     """Return a function which evaluates func for a given input and returns the
     input. Useful for wrapping functions which do not return a useful input,
     such as print.

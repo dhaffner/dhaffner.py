@@ -1,16 +1,6 @@
-__all__ = ('filter', 'filterfalse', 'map', 'range', 'reduce', 'zip',
-           'compose', 'star', 'unstar', 'PY2', 'PY3')
+__all__ = ('compose', 'unstar', 'sifter')
 
-from sys import version_info
-
-PY3 = version_info[0] == 3
-PY2 = version_info[0] == 2
-
-if PY3:
-    from itertools import filterfalse
-
-elif PY2:
-    from itertools import ifilterfalse as filterfalse
+from six.moves import reduce
 
 
 def unstar(func):
@@ -22,7 +12,6 @@ def compose(*funcs):
 
 
 def sifter(*funcs):
-
     def sift(x):
         for f in funcs:
             if not f(x):

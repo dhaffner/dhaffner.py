@@ -7,6 +7,7 @@ import unittest
 import time
 import operator
 
+
 class TestIterators(unittest.TestCase):
     def setUp(self):
         pass

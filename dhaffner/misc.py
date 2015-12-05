@@ -52,4 +52,3 @@ def splitlines(text, exp=re.compile(r'^.*$', re.MULTILINE)):
     """Split lines in the given string lazily."""
     for match in exp.finditer(text):
         yield match.group(0)
-

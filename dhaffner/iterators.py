@@ -2,13 +2,27 @@
 
 # Some functions on sequences and iterables.
 
-__all__ = ('compact', 'consume', 'drop', 'exhaust', 'first', 'flatten',
-           'isiterable', 'iterate', 'length', 'last', 'nth', 'pick', 'split',
-           'take', 'unique')
+__all__ = (
+    'compact',
+    'consume',
+    'drop',
+    'exhaust',
+    'first',
+    'flatten',
+    'ilen',
+    'isiterable',
+    'iterate',
+    'last',
+    'nth',
+    'pick',
+    'split',
+    'take',
+    'unique'
+)
 
 from collections import deque, Iterable
 from functools import partial
-from itertools import islice, chain, tee
+from itertools import combinations, chain, islice, tee
 from operator import mul
 
 from six.moves import map, filter
@@ -120,7 +134,13 @@ def pick(iterable):
         yield element
 
 
-# TODO: powerset
+def powerset(iterable):
+    """Yields all possible subsets of the iterable
+        >>> list(powerset([1,2,3]))
+        [(), (1,), (2,), (3,), (1, 2), (1, 3), (2, 3), (1, 2, 3)]
+    """
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
 # Return a tuple containing the next element in the sequence,
@@ -144,6 +164,18 @@ def unique(iterable, filterfalse=filterfalse):
     for element in filterfalse(seen.__contains__, iterable):
         add(element)
         yield element
+
+
+def with_iter(contextmanager):
+    """Wrap an iterable in a ``with`` statement, so it closes once exhausted.
+    For example, this will close the file when the iterator is exhausted::
+        upper_lines = (line.upper() for line in with_iter(open('foo')))
+    Any context manager which returns an iterable is a candidate for
+    ``with_iter``.
+    """
+    with contextmanager as iterable:
+        for item in iterable:
+            yield item
 
 
 def where(dicts, **kwargs):
