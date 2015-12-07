@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Some functions on sequences and iterables.
 
 __all__ = (
@@ -25,9 +23,9 @@ from functools import partial
 from itertools import combinations, chain, islice, tee
 from operator import mul
 
-from six.moves import map, filter
+from six.moves import map, filter, filterfalse
 
-from dhaffner.common import compose, filterfalse
+from dhaffner.common import compose
 
 
 # Remove false values from sequence.
@@ -63,8 +61,9 @@ def drop(iterable, n, islice=islice):
 exhaust = deque(maxlen=0).extend
 
 
-# Get first element of a sequence
-first = compose(next, iter)
+def first(sequence, default=None):
+    """Get first element of a sequence"""
+    return next(iter(sequence), default)
 
 
 # Flatten a sequence one level of iteration.

@@ -23,7 +23,7 @@ import operator
 
 from contextlib import contextmanager
 from functools import partial, wraps
-from inspect import getargspec
+from inspect import getargspec, getouterframes, currentframe
 from threading import RLock
 
 from six.moves import map, reduce
@@ -77,9 +77,17 @@ class composable(object):  # noqa
             pass
 
     def __getattr__(self, attr):
-        if attr in self.funcs:
-            return compose(self.func, self.funcs[attr])
-        raise AttributeError
+        frames = getouterframes(currentframe())[1]
+
+        for dct in [first(frames).f_globals, __builtins__]:
+            if attr in dct:
+                break
+        else:
+            raise NameError(attr)
+
+        func = dct[attr]
+        assert callable(func)
+        return composable.compose(self.func, func)
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
