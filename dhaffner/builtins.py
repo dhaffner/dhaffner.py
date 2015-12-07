@@ -3,17 +3,13 @@ Some helper functions around Python built-in types: "numerics, sequences,
 mappings, files, classes, instances and exceptions."
 '''
 
-__all__ = ('dictfilter', 'dictitemgetter', 'dictmap', 'throws')
+__all__ = ('dictfilter', 'dictitemgetter', 'dictmap')
 
 
-from functools import partial
-from itertools import takewhile
-from operator import attrgetter, itemgetter, methodcaller
+from operator import attrgetter, itemgetter
 
-from six import iterkeys, itervalues, iteritems
+from six import iteritems
 from six.moves import map, filter, zip
-
-from dhaffner.common import compose
 
 
 #
