@@ -1,10 +1,6 @@
-__all__ = ('compose', 'unstar', 'sifter')
+__all__ = ('compose', 'sifter')
 
 from six.moves import reduce
-
-
-def unstar(func):
-    return lambda args: func(*args)
 
 
 def compose(*funcs):
