@@ -2,6 +2,7 @@
 
 __all__ = (
     'compact',
+    'cons',
     'consume',
     'drop',
     'exhaust',
@@ -30,6 +31,16 @@ from dhaffner.common import compose
 
 # Remove false values from sequence.
 compact = partial(filter, bool)
+
+
+def cons(element, sequence):
+    """Add element to beginning of (possibly infinite) sequence.
+    >>> list(cons(1, [2, 3]))
+    [1, 2, 3]
+    """
+    yield element
+    for s in sequence:
+        yield s
 
 
 def consume(iterator, n=None, next=next, islice=islice, deque=deque):
