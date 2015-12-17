@@ -2,10 +2,7 @@
 
 from dhaffner import iterators
 
-import random
 import unittest
-import time
-import operator
 
 
 class TestIterators(unittest.TestCase):
