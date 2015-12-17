@@ -2,10 +2,7 @@
 
 from dhaffner import common
 
-import random
 import unittest
-import time
-import operator
 
 
 class TestCommon(unittest.TestCase):
@@ -20,3 +17,4 @@ class TestCommon(unittest.TestCase):
 
     def test_compose(self):
         c = common.compose(lambda x: x + 2, lambda y: y ** 2)
+        self.assertEqual(c(12), 146)

@@ -7,6 +7,7 @@ import unittest
 import time
 import operator
 
+
 class TestAtomize(unittest.TestCase):
 
     def setUp(self):
@@ -45,7 +46,7 @@ class TestFunctions(unittest.TestCase):
         self.assertTrue(f([1, 2]) == 'A')
 
     def test_context(self):
-        f = functions.context(lambda x: x  ** 2, 2)
+        f = functions.context(lambda x: x ** 2, 2)
         with f as y:
             self.assertTrue(y == 4)
 
@@ -77,10 +78,25 @@ class TestFunctions(unittest.TestCase):
         f = functions.vectorize(lambda a: a)
 
         self.assertTrue(f(1) == [1])
-        self.assertTrue(f((1,2)) == (1, 2))
+        self.assertTrue(f((1, 2)) == (1, 2))
 
         gen = xrange(2)
         self.assertTrue(f(gen) == gen)
+
+    def test_maybe(self):
+        lst = []
+        f = functions.maybe(
+            lst.append,
+            lambda x: None
+        )
+        f1, f0 = f(1.0), f(0.0)
+
+        for i in xrange(10):
+            f1('A')
+            f0('B')
+
+        self.assertTrue(lst.count('A') == 10)
+        self.assertTrue(lst.count('B') == 0)
 
 
 class TestFunctionsComposable(unittest.TestCase):
@@ -115,13 +131,12 @@ class TestFunctionsComposable(unittest.TestCase):
             print op, h, h(n), f(n), op(f(n))
             self.assertEqual(op(f(n)), h(n))
 
-
     def test_compose(self):
         f = functions.composable(lambda x: x ** 3)
-        h1 = f << (lambda  x: x + 2)
+        h1 = f << (lambda x: x + 2)
         self.assertEqual(h1(2), 64)
 
-        h2 = f >> (lambda  x: x + 10)
+        h2 = f >> (lambda x: x + 10)
         self.assertEqual(h2(4), 74)
 
     def test_iterate(self):
@@ -137,6 +152,15 @@ class TestFunctionsComposable(unittest.TestCase):
             return x + 100
         f = functions.composable(func)
         self.assertEqual(repr(f), repr(func))
+
+    def test_getattr(self):
+        @functions.composable
+        def func(x):
+            return x * 2
+
+        f1 = func . str
+        self.assertEqual(f1(2), '22')
+        self.assertRaises(NameError, lambda: func . nonexistantfuncname)
 
 
 if __name__ == '__main__':

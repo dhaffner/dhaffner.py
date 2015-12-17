@@ -30,6 +30,12 @@ class TestIterators(unittest.TestCase):
         iterators.consume(it)
         self.assertRaises(StopIteration, next, it)
 
+    def test_cons(self):
+        it = iterators.cons(1, xrange(10, 20))
+        self.assertTrue(next(it) == 1)
+        self.assertTrue(next(it) == 10)
+
+
     def test_dotproduct(self):
         v1, v2 = xrange(1, 10), xrange(10, 19)
         p = iterators.dotproduct(v1, v2)
@@ -50,6 +56,9 @@ class TestIterators(unittest.TestCase):
 
         gen = xrange(20, 30)
         self.assertTrue(iterators.first(gen) == 20)
+
+        self.assertTrue(iterators.first([], None) == None)
+        self.assertTrue(iterators.first([], 'poo') == 'poo')
 
         self.assertRaises(StopIteration, iterators.first, [])
 
@@ -102,6 +111,14 @@ class TestIterators(unittest.TestCase):
         picks = [next(it)] * 10
         self.assertTrue(picks.count(9) == 10)
 
+    def test_powerset(self):
+        it = iterators.powerset(xrange(3))
+        self.assertTrue(iterators.isiterable(it))
+        lst = list(it)
+        self.assertTrue(
+            lst == [(), (0,), (1,), (2,), (0, 1), (0, 2), (1, 2), (0, 1, 2)]
+        )
+
     def test_split(self):
         head, tail = iterators.split(xrange(10))
         self.assertTrue(head == 0)
@@ -115,6 +132,16 @@ class TestIterators(unittest.TestCase):
     def test_unique(self):
         it = iterators.unique([10, 20, 30, 40, 50] * 3)
         self.assertTrue(iterators.ilen(it) == 5)
+
+    def test_with_iter(self):
+        from contextlib import contextmanager
+
+        @contextmanager
+        def f():
+            yield xrange(12, 22)
+
+        c = iterators.with_iter(f())
+        self.assertTrue(next(c) == 12)
 
     def test_where(self):
         d1 = {'a': 1, 'b': 2, 'c': 3, 'd': 33}
