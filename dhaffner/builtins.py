@@ -48,7 +48,7 @@ dictitemgetter = dictgetter(itemgetter)
 #
 
 
-class lazyproperty(property):
+class lazyproperty(property):  # noqa
     """A decorator to lazily evaluate an object property."""
     def __init__(self, *args):
         self.__called__ = False
