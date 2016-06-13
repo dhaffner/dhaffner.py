@@ -118,9 +118,6 @@ class composable(object):  # noqa
     def __or__(self, other, or_=operator.or_):
         return composable.juxt(or_, self.func, other)
 
-    def __div__(self, other, div=operator.div):
-        return composable.juxt(div, self.func, other)
-
     def __truediv__(self, other, truediv=operator.truediv):
         return composable.juxt(truediv, self.func, other)
 
