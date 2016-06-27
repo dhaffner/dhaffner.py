@@ -72,10 +72,12 @@ def drop(iterable, n, islice=islice):
 exhaust = deque(maxlen=0).extend
 
 
-def first(sequence, default=None):
+def first(sequence, default=Ellipsis):
     """Get first element of a sequence"""
-    iterator = iter(sequence)
-    return next(iterator, default) if default is not None else next(iterator)
+    if default is Ellipsis:
+        return next(iter(sequence))
+    else:
+        return next(iter(sequence), default)
 
 
 # Flatten a sequence one level of iteration.

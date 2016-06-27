@@ -2,14 +2,13 @@
 Miscellaneous functions.
 """
 
-__all__ = ('files', 'find', 'maybe', 'noop', 'splitlines')
+__all__ = ('files', 'find', 'noop', 'splitlines')
 
 import re
 
 from fnmatch import filter as fnfilter
 from functools import partial
 from os import listdir, path
-from random import random
 
 from six.moves import map
 
@@ -34,13 +33,6 @@ def find(pattern, string, default=None, n=0):
         return default
 
     return match.group(n)
-
-
-def maybe(p, func, x):
-    """With probability p, evaluate func(x). Always return x."""
-    if random() <= p:
-        func(x)
-    return x
 
 
 def noop(*args, **kwargs):

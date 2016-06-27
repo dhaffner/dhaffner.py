@@ -25,7 +25,6 @@ class TestMisc(unittest.TestCase):
         self.assertEqual(misc.find('(aaa)', s, default='blah'), 'blah')
         self.assertRaises(StopIteration, misc.find, '(aaa)', s)
 
-
     def test_maybe(self):
         lst = []
         f = lambda x: lst.append(x)

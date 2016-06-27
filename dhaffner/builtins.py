@@ -11,6 +11,8 @@ from operator import attrgetter, itemgetter
 from six import iteritems
 from six.moves import map, filter, zip
 
+from dhaffner.functions import lift
+
 
 #
 #   Dictionaries
@@ -18,11 +20,11 @@ from six.moves import map, filter, zip
 
 
 def dictmap(func, d):
-    return dict(map(func, iteritems(d)))
+    return dict(map(lift(func), iteritems(d)))
 
 
 def dictfilter(func, d):
-    return dict(filter(func, iteritems(d)))
+    return dict(filter(lift(func), iteritems(d)))
 
 
 def dictgetter(getterfunc):  # Not included in __all__
@@ -46,7 +48,7 @@ dictitemgetter = dictgetter(itemgetter)
 #
 
 
-class lazyproperty(property):
+class lazyproperty(property):  # noqa
     """A decorator to lazily evaluate an object property."""
     def __init__(self, *args):
         self.__called__ = False

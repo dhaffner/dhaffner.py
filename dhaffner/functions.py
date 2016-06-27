@@ -14,7 +14,7 @@ __all__ = (
     'juxt',
     'lift',
     'nargs',
-    'tap',
+    'pipe',
     'scan',
     'vectorize'
 )
@@ -24,6 +24,7 @@ import operator
 from contextlib import contextmanager
 from functools import partial, wraps
 from inspect import getargspec, getouterframes, currentframe
+from random import random
 from threading import RLock
 
 from six.moves import map, reduce
@@ -72,7 +73,6 @@ class composable(object):  # noqa
 
     def __getattr__(self, attr):
         frame, *_ = getouterframes(currentframe())[1]
-
         for dct in [frame.f_globals, __builtins__]:
             if attr in dct:
                 break
@@ -160,7 +160,7 @@ class composable(object):  # noqa
         return composable.compose(other, self.func)
 
     def __str__(self):
-        return '{}({})'.format(self.__class__, str(self.func))
+        return '{}({})'.format(self.__class__.__name__, str(self.func))
 
     def __repr__(self):
         return repr(self.func)
@@ -205,7 +205,7 @@ def curry(func, n=None):
     if n is None:
         n = nargs(func)
 
-    @wraps(func)
+    # @wraps(func)
     def curried(*args, **kwargs):
         if len(args) >= n:
             return func(*args, **kwargs)
@@ -243,13 +243,24 @@ def lift(func):
     return lifted
 
 
-def tap(func):
+def maybe(yes, no):
+    """Decorate a function to call either yes or no based on probability."""
+    def flip(p=1.0):
+        def inner(*args, **kwargs):
+            return (random() < p and yes or no)(*args, **kwargs)
+        return inner
+
+    return flip
+
+
+def pipe(*funcs):
     """Return a function which evaluates func for a given input and returns the
     input. Useful for wrapping functions which do not return a useful input,
     such as print.
     """
     def wrapped(x):
-        func(x)
+        for f in funcs:
+            f(x)
         return x
 
     return wrapped
