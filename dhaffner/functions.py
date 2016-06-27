@@ -67,19 +67,13 @@ def flip(func):
 
 
 class composable(object):  # noqa
-    funcs = {}
-
     def __init__(self, func):
         self.func = func
-        try:
-            self.funcs[func.__name__] = func
-        except AttributeError:
-            pass
 
     def __getattr__(self, attr):
-        frames = getouterframes(currentframe())[1]
+        frame, *_ = getouterframes(currentframe())[1]
 
-        for dct in [first(frames).f_globals, __builtins__]:
+        for dct in [frame.f_globals, __builtins__]:
             if attr in dct:
                 break
         else:

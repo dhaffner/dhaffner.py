@@ -15,7 +15,7 @@ class TestCommon(unittest.TestCase):
 
     def test_sifter(self):
         s = common.sifter(lambda x: x > 5, lambda x: x % 2 == 1)
-        lst = list(filter(s, xrange(20)))
+        lst = list(filter(s, range(20)))
         self.assertEqual(len(lst), 7)
 
     def test_compose(self):

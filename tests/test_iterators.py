@@ -23,7 +23,7 @@ class TestIterators(unittest.TestCase):
         self.assertTrue(len(lst) == length)
 
     def test_consume(self):
-        it = iter(xrange(10))
+        it = iter(range(10))
         iterators.consume(it, 3)
         self.assertTrue(next(it) == 3)
 
@@ -31,12 +31,12 @@ class TestIterators(unittest.TestCase):
         self.assertRaises(StopIteration, next, it)
 
     def test_dotproduct(self):
-        v1, v2 = xrange(1, 10), xrange(10, 19)
+        v1, v2 = range(1, 10), range(10, 19)
         p = iterators.dotproduct(v1, v2)
         self.assertTrue(p == 690)
 
     def test_drop(self):
-        gen = iterators.drop(xrange(10), 1)
+        gen = iterators.drop(range(10), 1)
         self.assertTrue(next(gen) == 1)
 
     def test_exhaust(self):
@@ -48,7 +48,7 @@ class TestIterators(unittest.TestCase):
         lst = ['A', 'B', 'C', 'D']
         self.assertTrue(iterators.first(lst) == 'A')
 
-        gen = xrange(20, 30)
+        gen = range(20, 30)
         self.assertTrue(iterators.first(gen) == 20)
 
         self.assertRaises(StopIteration, iterators.first, [])
@@ -56,13 +56,13 @@ class TestIterators(unittest.TestCase):
     def test_flatten(self):
         lst = []
         for i in [10, 20, 30]:
-            lst.append(list(xrange(i)))
+            lst.append(list(range(i)))
 
         flat_lst = list(iterators.flatten(lst))
         self.assertTrue(len(flat_lst) == 60)
 
     def test_ilen(self):
-        self.assertTrue(iterators.ilen(xrange(100)) == 100)
+        self.assertTrue(iterators.ilen(range(100)) == 100)
         self.assertTrue(iterators.ilen(['a', 'b', 'c']) == 3)
         self.assertTrue(iterators.ilen([]) == 0)
 
@@ -91,24 +91,24 @@ class TestIterators(unittest.TestCase):
 
     def test_partition(self):
         pred = lambda x: x % 2 == 0
-        lst = xrange(1000)
+        lst = range(1000)
         fit, tit = iterators.partition(lst, pred)
         D = [next(fit) - next(tit)] * 500
         self.assertTrue(D.count(1) == 500)
 
     def test_pick(self):
-        it = iterators.pick(xrange(10))
+        it = iterators.pick(range(10))
         iterators.consume(it, 10)
         picks = [next(it)] * 10
         self.assertTrue(picks.count(9) == 10)
 
     def test_split(self):
-        head, tail = iterators.split(xrange(10))
+        head, tail = iterators.split(range(10))
         self.assertTrue(head == 0)
         self.assertTrue(iterators.isiterable(tail))
 
     def test_take(self):
-        lst = iterators.take(10, xrange(100))
+        lst = iterators.take(10, range(100))
         self.assertTrue(iterators.last(lst) == 9)
         self.assertEqual(iterators.last([1]), 1)
 

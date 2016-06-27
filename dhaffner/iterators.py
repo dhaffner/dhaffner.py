@@ -74,7 +74,8 @@ exhaust = deque(maxlen=0).extend
 
 def first(sequence, default=None):
     """Get first element of a sequence"""
-    return next(iter(sequence), default)
+    iterator = iter(sequence)
+    return next(iterator, default) if default is not None else next(iterator)
 
 
 # Flatten a sequence one level of iteration.
@@ -86,7 +87,7 @@ def isiterable(obj, strings=False, isinstance=isinstance, Iterable=Iterable):
     Determine whether obj is a sequence.
     """
     return (isinstance(obj, Iterable) and
-            not (isinstance(obj, basestring) and not strings))
+            not (isinstance(obj, str) and not strings))
 
 
 def iterate(func, x):
@@ -190,7 +191,7 @@ def with_iter(contextmanager):
 
 def where(dicts, **kwargs):
     def sift(d):
-        for (k, v) in kwargs.iteritems():
+        for (k, v) in kwargs.items():
             if d.get(k) != v:
                 return False
         return True

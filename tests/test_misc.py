@@ -29,7 +29,7 @@ class TestMisc(unittest.TestCase):
     def test_maybe(self):
         lst = []
         f = lambda x: lst.append(x)
-        for i in xrange(10):
+        for i in range(10):
             misc.maybe(1.0, f, 'A')
             misc.maybe(0.0, f, 'B')
 
