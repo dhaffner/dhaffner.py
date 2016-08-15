@@ -50,20 +50,21 @@ class TestFunctions(unittest.TestCase):
         with f as y:
             self.assertTrue(y == 4)
 
-    def test_nargs(self):
-        self.assertTrue(functions.nargs(self.test_nargs) == 1)
-
     def test_curry(self):
-        f = functions.curry(lambda x, y: x + y)
+        def f(x, y, *z):
+            print('args', x, y, z)
+            return x + y
+
+        f = functions.curry(f)
         self.assertTrue(callable(f(1)))
         self.assertTrue(f(1)(2) == 3)
 
     def test_identity(self):
         self.assertTrue(functions.identity(1) == 1)
 
-    def test_pipe(self):
+    def test_tap(self):
         lst = [3, 2, 1]
-        f = functions.pipe(list.sort)
+        f = functions.tap(list.sort)
         self.assertTrue(f(lst) == [1, 2, 3])
 
     def test_scan(self):
@@ -80,7 +81,7 @@ class TestFunctions(unittest.TestCase):
         self.assertTrue(f(1) == [1])
         self.assertTrue(f((1, 2)) == (1, 2))
 
-        gen = xrange(2)
+        gen = range(2)
         self.assertTrue(f(gen) == gen)
 
     def test_maybe(self):
@@ -103,7 +104,7 @@ class TestFunctionsComposable(unittest.TestCase):
     def setUp(self):
         self.ops = \
             ['add', 'sub', 'mul', 'floordiv', 'mod', 'and_', 'xor', 'or_',
-             'div', 'truediv', 'lt', 'gt', 'le', 'eq', 'ne', 'ge', 'gt']
+             'truediv', 'lt', 'gt', 'le', 'eq', 'ne', 'ge', 'gt']
 
         self.unary_ops = ['neg', 'pos', 'abs', 'invert']
 
@@ -121,14 +122,13 @@ class TestFunctionsComposable(unittest.TestCase):
 
             start = random.randint(100, 200)
 
-            for n in xrange(start, start + 100):
+            for n in range(start, start + 100):
                 self.assertEqual(h(n), op(f(n), g(n)))
 
         unary_ops = operator.attrgetter(*self.unary_ops)(operator)
         for op in unary_ops:
             h = op(f)
             n = random.randint(100, 1000)
-            print op, h, h(n), f(n), op(f(n))
             self.assertEqual(op(f(n)), h(n))
 
     def test_compose(self):
@@ -146,6 +146,14 @@ class TestFunctionsComposable(unittest.TestCase):
         f = functions.composable(func)
         self.assertEqual((f ** 2)(1), 4)
         self.assertEqual((f ** 3)(1), 8)
+
+    def test_getattr(self):
+        def func(x):
+            return x * 2
+
+        f = functions.composable(func)
+        self.assertEqual((f . str)('blah'), 'blahblah')
+        self.assertRaises(NameError, lambda: f . NonExistantName)
 
     def test_repr(self):
         def func(x):

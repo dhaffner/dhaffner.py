@@ -68,17 +68,12 @@ def flip(func):
 
 
 class composable(object):  # noqa
-
     def __init__(self, func):
         self.func = func
 
     def __getattr__(self, attr):
-        # Grab the calling frame so that we can look up its attributes.
-        frames = getouterframes(currentframe())[1]
-
-        # Look for the given function by name in the builtins and the calling
-        # scope
-        for dct in [first(frames).f_globals, __builtins__]:
+        frame, *_ = getouterframes(currentframe())[1]
+        for dct in [frame.f_globals, __builtins__]:
             if attr in dct:
                 break
         else:
@@ -116,9 +111,6 @@ class composable(object):  # noqa
 
     def __or__(self, other, or_=operator.or_):
         return composable.juxt(or_, self.func, other)
-
-    def __div__(self, other, div=operator.div):
-        return composable.juxt(div, self.func, other)
 
     def __truediv__(self, other, truediv=operator.truediv):
         return composable.juxt(truediv, self.func, other)

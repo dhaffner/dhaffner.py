@@ -89,7 +89,7 @@ def isiterable(obj, strings=False, isinstance=isinstance, Iterable=Iterable):
     Determine whether obj is a sequence.
     """
     return (isinstance(obj, Iterable) and
-            not (isinstance(obj, basestring) and not strings))
+            not (isinstance(obj, str) and not strings))
 
 
 def iterate(func, x):
@@ -193,7 +193,7 @@ def with_iter(contextmanager):
 
 def where(dicts, **kwargs):
     def sift(d):
-        for (k, v) in kwargs.iteritems():
+        for (k, v) in kwargs.items():
             if d.get(k) != v:
                 return False
         return True
