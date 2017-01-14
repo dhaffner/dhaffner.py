@@ -62,9 +62,9 @@ class TestFunctions(unittest.TestCase):
     def test_identity(self):
         self.assertTrue(functions.identity(1) == 1)
 
-    def test_tap(self):
+    def test_pipe(self):
         lst = [3, 2, 1]
-        f = functions.tap(list.sort)
+        f = functions.pipe(list.sort)
         self.assertTrue(f(lst) == [1, 2, 3])
 
     def test_scan(self):
@@ -92,7 +92,7 @@ class TestFunctions(unittest.TestCase):
         )
         f1, f0 = f(1.0), f(0.0)
 
-        for i in xrange(10):
+        for i in range(10):
             f1('A')
             f0('B')
 

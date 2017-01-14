@@ -1,6 +1,7 @@
 from setuptools import setup
 
-setup(name='dhaffner',
+setup(namespace_packages=['dhaffner'],
+      name='dhaffner',
       version='0.1',
       description='Some Python utility modules.',
       url='http://github.com/dhaffner/dhaffner.py',
