@@ -28,7 +28,7 @@ class TestIterators(unittest.TestCase):
         self.assertRaises(StopIteration, next, it)
 
     def test_cons(self):
-        it = iterators.cons(1, xrange(10, 20))
+        it = iterators.cons(1, range(10, 20))
         self.assertTrue(next(it) == 1)
         self.assertTrue(next(it) == 10)
 
@@ -109,7 +109,7 @@ class TestIterators(unittest.TestCase):
         self.assertTrue(picks.count(9) == 10)
 
     def test_powerset(self):
-        it = iterators.powerset(xrange(3))
+        it = iterators.powerset(range(3))
         self.assertTrue(iterators.isiterable(it))
         lst = list(it)
         self.assertTrue(
@@ -135,7 +135,7 @@ class TestIterators(unittest.TestCase):
 
         @contextmanager
         def f():
-            yield xrange(12, 22)
+            yield range(12, 22)
 
         c = iterators.with_iter(f())
         self.assertTrue(next(c) == 12)
