@@ -1,16 +1,14 @@
 """
 Miscellaneous functions.
 """
-
-__all__ = ('files', 'find', 'noop', 'splitlines')
-
 import re
 
 from fnmatch import filter as fnfilter
 from functools import partial
 from os import listdir, path
 
-from six.moves import map
+
+__all__ = ('files', 'find', 'noop', 'lazysplit')
 
 
 def files(directory, pattern):
@@ -40,7 +38,7 @@ def noop(*args, **kwargs):
     pass
 
 
-def splitlines(text, exp=re.compile(r'^.*$', re.MULTILINE)):
+def lazysplit(text, pattern=re.compile(r'^.*$', re.MULTILINE)):
     """Split lines in the given string lazily."""
-    for match in exp.finditer(text):
+    for match in pattern.finditer(text):
         yield match.group(0)

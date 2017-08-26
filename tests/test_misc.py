@@ -1,11 +1,7 @@
 #!/usr/bin/env python
+import unittest
 
 from dhaffner import misc, iterators
-
-import random
-import unittest
-import time
-import operator
 
 
 class TestMisc(unittest.TestCase):
@@ -16,7 +12,6 @@ class TestMisc(unittest.TestCase):
     def test_files(self):
         files = misc.files('.', '*')
         self.assertTrue(iterators.isiterable(files))
-
 
     def test_find(self):
         s = "This is a 1234, test."
@@ -32,12 +27,12 @@ class TestMisc(unittest.TestCase):
 
     def test_splitlines(self):
         s = \
-        """a
-        b
-        c
-        d
-        e"""
+            """a
+            b
+            c
+            d
+            e"""
 
-        lines = misc.splitlines(s)
+        lines = misc.lazysplit(s)
         self.assertTrue(iterators.isiterable(lines))
         self.assertTrue(iterators.ilen(lines) == 5)
