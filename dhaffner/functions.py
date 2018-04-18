@@ -19,6 +19,7 @@ __all__ = (
     'vectorize'
 )
 
+
 import operator
 
 from contextlib import contextmanager
@@ -241,16 +242,6 @@ def lift(func):
         return func(*args)
 
     return lifted
-
-
-def maybe(yes, no):
-    """Decorate a function to call either yes or no based on probability."""
-    def flip(p=1.0):
-        def inner(*args, **kwargs):
-            return (random() < p and yes or no)(*args, **kwargs)
-        return inner
-
-    return flip
 
 
 def pipe(*funcs):

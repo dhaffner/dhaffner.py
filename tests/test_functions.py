@@ -84,22 +84,6 @@ class TestFunctions(unittest.TestCase):
         gen = range(2)
         self.assertTrue(f(gen) == gen)
 
-    def test_maybe(self):
-        lst = []
-        f = functions.maybe(
-            lst.append,
-            lambda x: None
-        )
-        f1, f0 = f(1.0), f(0.0)
-
-        for i in range(10):
-            f1('A')
-            f0('B')
-
-        self.assertTrue(lst.count('A') == 10)
-        self.assertTrue(lst.count('B') == 0)
-
-
 class TestFunctionsComposable(unittest.TestCase):
     def setUp(self):
         self.ops = \
