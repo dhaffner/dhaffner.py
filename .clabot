@@ -1,5 +1,5 @@
 {
-  "contributors": ["xdhaffner"],
+  "contributors": ["xdhaffner", "dhaffner"],
   "message": "Hey there! Sign the CLA please.",
   "label": "cla-signed",
   "recheckComment": "check yourself"
