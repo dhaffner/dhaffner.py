@@ -1,14 +1,19 @@
 from setuptools import setup
 
-setup(namespace_packages=['dhaffner'],
-      name='dhaffner',
+setup(name='dhaffner',
       version='0.1',
       description='Some Python utility modules.',
       url='http://github.com/dhaffner/dhaffner.py',
       author='Dustin Haffner',
       author_email='dh@xix.org',
       license='MIT',
-      packages=['dhaffner'],
+      packages=[
+          'dhaffner.builtins',
+          'dhaffner.common',
+          'dhaffner.functions',
+          'dhaffner.iterators',
+          'dhaffner.misc'
+      ],
       install_requires=[
           'six'
       ],
